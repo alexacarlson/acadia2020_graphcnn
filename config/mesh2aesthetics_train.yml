@@ -21,5 +21,5 @@ OPTIM:
 GCC:
     INPUT_MESH_FEATS: 3
     HIDDEN_DIMS: [128, 256, 256, 512]
-    CLASSES: 10
+    CLASSES: 4
     CONV_INIT: "normal"
