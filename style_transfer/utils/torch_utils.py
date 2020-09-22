@@ -46,6 +46,40 @@ def train_val_split(config, ratio=0.7):
     random.shuffle(val_objs)
     return trn_objs, val_objs
 
+def train_val_split_mesh2aesth(config, ratio=0.7):
+    '''
+    Function for splitting dataset in train and validation
+    '''
+    print("Splitting Dataset..")
+    data_dir = os.path.join(config.SHAPENET_DATA.PATH, 'OBJdatabase')
+    _params_csv = os.path.join(config.SHAPENET_DATA.PATH, 'NamingParameters.csv')
+
+    ## read in params
+    tmp_objs = []
+    with open(_params_csv, newline='') as csvfile:
+        sreader = csv.reader(csvfile, delimiter=',')
+        ## skip first two lines of csv file
+        next(sreader)
+        next(sreader)
+        for row in sreader:                
+            objpath = os.path.join(data_dir,row[0])
+            params = [float(pp.replace(',','')) for pp in row[1:5]]
+            tmp_objs.append([params, objpath])
+            #pdb.set_trace()
+    trn_objs = tmp_objs[:int(len(tmp_objs)*0.9)]
+    val_objs = tmp_objs[int(len(tmp_objs)*0.9):]
+    #for cls in tqdm(classes):
+    #    tmp = [(classes[cls], os.path.join(data_dir, cls, obj_file,'model.obj')) for obj_file in os.listdir(os.path.join(data_dir,cls))]
+    #    random.shuffle(tmp)
+    #    tmp_train = tmp[:int(len(tmp)*0.7)]
+    #    tmp_test = tmp[int(len(tmp)*0.7):]
+    #    trn_objs += tmp_train
+    #    val_objs += tmp_test
+    #    #print(taxonomy['name'][taxonomy.synsetId == int(cls)], len(tmp))
+    random.shuffle(trn_objs)
+    random.shuffle(val_objs)
+    return trn_objs, val_objs
+
 def train_val_split_mesh2acoust(config, ratio=0.7):
     '''
     Function for splitting dataset in train and validation
