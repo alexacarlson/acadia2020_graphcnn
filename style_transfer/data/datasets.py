@@ -48,7 +48,7 @@ class ShapenetDataset(Dataset):
         cls = torch.Tensor(cls).to(dtype=int)
         return cls, meshes
 
-class mesh2acoustic_Dataset(Dataset):
+class mesh2aesthetics_Dataset(Dataset):
     def __init__(self, cfg, obj_list):
 #         self.device = cfg.DEVICE
         #self.transform = cfg.SHAPENET_DATA.TRANSFORM
