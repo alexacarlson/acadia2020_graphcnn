@@ -46,10 +46,13 @@ def train_val_split(config, ratio=0.7):
     random.shuffle(val_objs)
     return trn_objs, val_objs
 
-def train_val_split_mesh2aesth(config, ratio=0.7):
+def train_val_split_mesh2aesthetics(config, ratio=0.7):
     '''
     Function for splitting dataset in train and validation
     '''
+    def labels2vec(labelparams):
+        ## FILL in
+        return vec_
     print("Splitting Dataset..")
     data_dir = os.path.join(config.SHAPENET_DATA.PATH, 'OBJdatabase')
     _params_csv = os.path.join(config.SHAPENET_DATA.PATH, 'NamingParameters.csv')
