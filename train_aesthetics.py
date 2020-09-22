@@ -10,10 +10,10 @@ import numpy as np
 from torch import nn, optim
 from torch.utils.data import DataLoader
 
-from style_transfer.data.datasets import ShapenetDataset, mesh2acoustic_Dataset
+from style_transfer.data.datasets import ShapenetDataset, mesh2aesthetics_Dataset
 from style_transfer.models.base_nn import GraphConvClf
 from style_transfer.config import Config
-from style_transfer.utils.torch_utils import train_val_split, train_val_split_mesh2acoust, save_checkpoint, accuracy
+from style_transfer.utils.torch_utils import train_val_split, train_val_split_mesh2aesthetics, save_checkpoint, accuracy
 import matplotlib.pyplot as plt
 
 import warnings
@@ -73,13 +73,13 @@ if __name__ == "__main__":
     ## Datasets
     #trn_objs, val_objs = train_val_split(config=_C)
     #collate_fn = ShapenetDataset.collate_fn
-    trn_objs_list, val_objs_list = train_val_split_mesh2acoust(config=_C)
-    collate_fn = mesh2acoustic_Dataset.collate_fn   
+    trn_objs_list, val_objs_list = train_val_split_mesh2aesthetics(config=_C)
+    collate_fn = mesh2aesthetics_Dataset.collate_fn   
     #if _C.OVERFIT:
     #    trn_objs, val_objs = trn_objs[:10], val_objs[:10]
     
     #trn_dataset = ShapenetDataset(_C, trn_objs)
-    trn_dataset = mesh2acoustic_Dataset(_C, trn_objs_list)
+    trn_dataset = mesh2aesthetics_Dataset(_C, trn_objs_list)
     trn_dataloader = DataLoader(trn_dataset, 
                             batch_size=_C.OPTIM.BATCH_SIZE, 
                             shuffle=True, 
@@ -87,7 +87,7 @@ if __name__ == "__main__":
                             num_workers=_C.OPTIM.WORKERS)
     
     #val_dataset = ShapenetDataset(_C, val_objs)
-    val_dataset = mesh2acoustic_Dataset(_C, val_objs_list)
+    val_dataset = mesh2aesthetics_Dataset(_C, val_objs_list)
     val_dataloader = DataLoader(val_dataset, 
                             batch_size=_C.OPTIM.VAL_BATCH_SIZE, 
                             shuffle=True, 
@@ -113,7 +113,7 @@ if __name__ == "__main__":
 #         optimizer, lr_lambda=lambda iteration: 1 - iteration / _C.OPTIM.NUM_ITERATIONS
 #     )
 
-    criterion = nn.MSELoss() #nn.CrossEntropyLoss()
+    criterion = nn.BCEloss() #nn.MSELoss() #nn.CrossEntropyLoss()
     args  = {}
     args['EXPERIMENT_NAME'] =  _C.EXPERIMENT_NAME
     args['full_experiment_name'] = _C.CKP.full_experiment_name
