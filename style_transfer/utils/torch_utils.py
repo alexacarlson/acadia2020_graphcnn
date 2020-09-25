@@ -66,7 +66,10 @@ def train_val_split_mesh2aesthetics(config, ratio=0.7):
         ## skip first two lines of csv file
         next(sreader)
         next(sreader)
-        for row in sreader:                
+        for row in sreader:    
+            if np.any([rr=='' for rr in pp[-31]]):
+                ## skip empty lines or models with incomplete labels
+                continue
             objpath = os.path.join(data_dir,row[0])
             unproc_params = [pp for pp in row[1:5]]
             params  = [STYLECLASSESDICT[unproc_params[0]], SEMANTICCLASSESDICT[unproc_params[1]], int(unproc_params[2])-1, int(unproc_params[3])-1 ]
