@@ -66,7 +66,8 @@ def train_val_split_mesh2aesthetics(config, ratio=0.7):
         ## skip first two lines of csv file
         next(sreader)
         next(sreader)
-        for row in sreader:    
+        for row in sreader:
+            print(row0)
             if 'set36' not in row[0] or 'house21' not in row[0]:
                 continue
             if np.any([rr=='' for rr in row]) or np.any([rr=='#' for rr in row]):
