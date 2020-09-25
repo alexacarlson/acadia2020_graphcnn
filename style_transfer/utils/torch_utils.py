@@ -68,17 +68,16 @@ def train_val_split_mesh2aesthetics(config, ratio=0.7):
         next(sreader)
         for row in sreader:
             print(row[0])
-            if 'set36' not in row[0] or 'house21' not in row[0]:
-                continue
-            if np.any([rr=='' for rr in row]) or np.any([rr=='#' for rr in row]):
-                ## skip empty lines or models with incomplete labels
-                continue
-            objpath = os.path.join(data_dir,row[0])
-            unproc_params = [pp for pp in row[1:5]]
-            params  = [STYLECLASSESDICT[unproc_params[0]], SEMANTICCLASSESDICT[unproc_params[1]], int(unproc_params[2])-1, int(unproc_params[3])-1 ]
-            #params = [float(pp.replace(',','')) for pp in row[1:5]]
-            tmp_objs.append([params, objpath])
-            #print( objpath, params, unproc_params)
+            if 'set36' in row[0] or 'house21' in row[0]:
+                if np.any([rr=='' for rr in row]) or np.any([rr=='#' for rr in row]):
+                    ## skip empty lines or models with incomplete labels
+                    continue
+                objpath = os.path.join(data_dir,row[0])
+                unproc_params = [pp for pp in row[1:5]]
+                params  = [STYLECLASSESDICT[unproc_params[0]], SEMANTICCLASSESDICT[unproc_params[1]], int(unproc_params[2])-1, int(unproc_params[3])-1 ]
+                #params = [float(pp.replace(',','')) for pp in row[1:5]]
+                tmp_objs.append([params, objpath])
+                #print( objpath, params, unproc_params)
     #print(len(tmp_objs))
     #pdb.set_trace()
     trn_objs = tmp_objs[:int(len(tmp_objs)*0.9)]
