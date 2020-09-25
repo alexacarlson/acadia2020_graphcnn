@@ -46,41 +46,6 @@ mpl.rcParams['figure.dpi'] = 80
 import warnings
 warnings.filterwarnings("ignore")
 
-
-def mesh_multisilhouette_optim(input_mesh, camera_poses, silhouette_img_ref, silhouette_renderer, device):
-    ## we want to render an image base loss (think like neural renderer vertex optim) but have it be from aorund the entire object
-    #dist_=15.
-    #el_ = 0.
-    #camera_poses = [[dist_, el_, 0.],[dist_, el_, 90.],[dist_, el_, 180.],[dist_, el_, 270.]]
-    loss=0
-    silhouette_img_list=[]
-    for dist, el, az in camera_poses:
-        # Get the position of the camera based on the spherical angles
-        R, T = look_at_view_transform(dist, el, az, device=device)
-        # Render the input mesh providing the values of R and T. 
-        silhouette_img = silhouette_renderer(meshes_world=input_mesh, R=R, T=T)
-        # Calculate the silhouette loss for this angle
-        loss += torch.sum((silhouette_img[...,3] - silhouette_img_ref) ** 2)
-        silhouette_img_list.append(silhouette_img)
-    return loss, silhouette_img_list
-    #
-    ## Get the position of the camera based on the spherical angles
-    #R, T = look_at_view_transform(dist_, el_, 0., device=device)
-    ## Render the input mesh providing the values of R and T. 
-    #silhouette_img = silhouette_renderer(meshes_world=input_mesh, R=R, T=T)
-    ## Calculate the silhouette loss for this angle
-    ##pdb.set_trace()
-    #loss = torch.sum((silhouette_img[...,3] - silhouette_img_ref) ** 2)
-    #return loss, [silhouette_img]
-
-def acousticparam_loss(input_mesh, net_model, desired_params):
-        # compute loss
-        nnpred =  torch.squeeze(net_model.forward(input_mesh))
-        #var_line_length = get_var_line_length_loss(self.mesh.vertices, self.mesh.faces)
-        #loss += self.lambda_length * var_line_length
-        #return nn.MSELoss([nnpred], [desired_params])
-        return torch.sum((nnpred - desired_params) ** 2)
-
 def plot_pointcloud(mesh, title=""):
     # Sample points uniformly from the surface of the mesh.
     points = sample_points_from_meshes(mesh, 5000)
@@ -118,20 +83,16 @@ def gif_pointcloud(mesh, filename, title=""):
     #ax.view_init(190, 30)
     #plt.savefig(title+'.png')
     #plt.show()
-
-def sublot_intermediate_renders(image_ref, img_list, outfile):
-    fig = plt.figure(figsize=(10, 4))
-    plt.subplot(1, 5, 1)
-    plt.imshow(image_ref.cpu().detach().numpy().squeeze())  # only plot the alpha channel of the RGBA image
-    plt.grid(False)
-    for ii, simg in enumerate(img_list,2):
-        silhouette = simg.cpu().detach().numpy()
-        #pdb.set_trace()
-        plt.subplot(1, 5, ii)
-        plt.imshow(silhouette[...,3].squeeze())
-        plt.grid(False)
-    fig.savefig(outfile)
-
+    
+def aestheticparam_loss(input_mesh, net_model, desired_params):
+        # compute loss
+        nnpred =  torch.squeeze(net_model.forward(input_mesh))
+        #var_line_length = get_var_line_length_loss(self.mesh.vertices, self.mesh.faces)
+        #loss += self.lambda_length * var_line_length
+        #return nn.MSELoss([nnpred], [desired_params])
+        #return torch.sum((nnpred - desired_params) ** 2)
+        return loss
+        
 if __name__ == "__main__":
     ## settings
     parser = argparse.ArgumentParser()
@@ -140,16 +101,19 @@ if __name__ == "__main__":
     parser.add_argument('-alr', '--adam_lr', type=float, default=0.01)
     parser.add_argument('-ab1', '--adam_beta1', type=float, default=0.9)
     parser.add_argument('-bs', '--batch_size', type=int, default=4)
-    parser.add_argument('-sif', '--silhouette_img_ref', type=str, default=None)
+    #parser.add_argument('-sif', '--silhouette_img_ref', type=str, default=None)
     parser.add_argument('-gnet', '--trained_graphnet_weights', type=str, default='/storage/mesh2acoustic_training_results/exp_03_10_11_57_39_c')
-    parser.add_argument('-wm', '--which_starting_mesh', type=str, default='sphere')
-    parser.add_argument('-wp', '--which_acoustic_params', type=str, default=None)
-    parser.add_argument('-maw', '--mesh_acousticparam_optim_weight', type=float, default=1.)
-    parser.add_argument('-msw', '--mesh_multisilhouette_optim_weight', type=float, default=1.)
-    parser.add_argument('-cpf', '--camera_positions_file', type=str, default=None)
+    parser.add_argument('-wm', '--starting_mesh', type=str, default='sphere')
+    parser.add_argument('-wp', '--style_param', type=str, default='baroque')
+    parser.add_argument('-wp', '--semantic_param', type=str, default='house')
+    parser.add_argument('-wp', '--functionvalue_param', type=str, default=5)
+    parser.add_argument('-wp', '--aestheticvalue_param', type=str, default=5)
+    parser.add_argument('-maw', '--mesh_param_optim_weights', type=float, default=1.)
+    #parser.add_argument('-msw', '--mesh_multisilhouette_optim_weight', type=float, default=1.)
+    #parser.add_argument('-cpf', '--camera_positions_file', type=str, default=None)
     parser.add_argument('-lap', '--mesh_laplacian_smoothing', type=lambda x:bool(util.strtobool(x)), default=True)
-    parser.add_argument('-ap', '--mesh_acousticparam_optim', type=lambda x:bool(util.strtobool(x)), default=True)
-    parser.add_argument('-so', '--mesh_multisilhouette_optim', type=lambda x:bool(util.strtobool(x)), default=True)
+    #parser.add_argument('-ap', '--mesh_acousticparam_optim', type=lambda x:bool(util.strtobool(x)), default=True)
+    #parser.add_argument('-so', '--mesh_multisilhouette_optim', type=lambda x:bool(util.strtobool(x)), default=True)
     parser.add_argument('-ni', '--num_iteration', type=int, default=501)
     parser.add_argument('-cd', '--camera_distance', type=float, default=2.5)
     parser.add_argument('-ib', '--init_bias', type=str, default='(0,0,0)')
@@ -161,26 +125,19 @@ if __name__ == "__main__":
     #device = torch.device("cpu")
     #
     ## make the output directory if necessary 
-    if args_.mesh_multisilhouette_optim and args_.mesh_acousticparam_optim:
-        output_dir = '_'.join(['/storage/results_acousticoptim', str(args_.which_acoustic_params), 'multicamVertoptim', os.path.splitext(os.path.split(args_.silhouette_img_ref)[1])[0]])
-    elif args_.mesh_acousticparam_optim:
-        output_dir = '_'.join(['/storage/results_acousticoptim', str(args_.which_acoustic_params)])
-    elif args_.mesh_multisilhouette_optim:
-        output_dir = '_'.join(['/storage/results_multicamVertoptim', os.path.splitext(os.path.split(args_.silhouette_img_ref)[1])[0]])
-    else:
-        print('need some optimization criterion, specify mesh_acousticparam_optim, mesh_multisilhouette_optim, or both')
+    output_dir = '/storage/results_%s_optim_style%s_semantic%s_func%s_aesth%s'%(str(args_.starting_mesh), str(args_.style_param), str(args_.semantic_param), str(args_.functionvalue_param), str(args_.aestheticvalue_param))
     print('Saving optim results to %s'%(output_dir))
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
 
     ## ---- SET UP seed mesh for dreaming ---- ##
-    if args_.which_starting_mesh=='sphere':
+    if args_.starting_mesh=='sphere':
         ## FOR loading in sphere; initialize the source shape to be a sphere of radius 1
         src_mesh = ico_sphere(4, device)
-    elif args_.which_starting_mesh=='plane':
+    elif args_.starting_mesh=='plane':
         ## FOR loading in plane
         src_mesh = ico_plane(2., 3., 2, precision = 1.0, z = 0.0, color = None, device=device)
-    elif os.path.isfile(args_.which_starting_mesh):
+    elif os.path.isfile(args_.starting_mesh):
         ## FOR loading in input mesh from file
         verts, faces, aux=load_obj(args_.which_starting_mesh)
         faces_idx = faces.verts_idx.to(device)
@@ -190,68 +147,18 @@ if __name__ == "__main__":
         print('Please specify a valid input mesh, one of: sphere, plane, or filepath to obj mesh file')
         sys.exit()
 
-    ## ---- SET UP cameras for silhouette rendering ---- ##
-    if args_.mesh_multisilhouette_optim:
-        ## load in silhouette reference image
-        silhouette_ref = (1./255.)*cv2.imread(args_.silhouette_img_ref)
-        silhouette_ref = cv2.resize(silhouette_ref, (256, 256))
-        silhouette_ref = torch.from_numpy((silhouette_ref[..., :3].max(-1) != 0).astype(np.float32)).to(device)
-        #silhouette_ref = torch.tensor([silhouette_ref], dtype=torch.float32, device=device)
-        #
-        # Process camera positions
-        if args_.camera_positions_file:
-            with open(args_.camera_positions_file,'r') as ff:
-                camera_lines = [x.strip() for x in ff.readlines()]
-            camera_poses=[[float(cl.split(' ')[0]), float(cl.split(' ')[1]), float(cl.split(' ')[2])] for cl in camera_lines]
-        else:
-            dist_=15.
-            el_=0.
-            camera_poses=[[dist_, el_, 0.],[dist_, el_, 90.],[dist_, el_, 180.],[dist_, el_, 270.]]
-        # Initialize an OpenGL perspective camera.
-        cameras = OpenGLPerspectiveCameras(device=device)
-        # To blend the 100 faces we set a few parameters which control the opacity and the sharpness of 
-        # edges. Refer to blending.py for more details. 
-        blend_params = BlendParams(sigma=1e-4, gamma=1e-4)
-        # Define the settings for rasterization and shading. Here we set the output image to be of size
-        # 256x256. To form the blended image we use 100 faces for each pixel. Refer to rasterize_meshes.py
-        # for an explanation of this parameter. 
-        raster_settings = RasterizationSettings(
-            image_size=256, 
-            blur_radius=np.log(1. / 1e-4 - 1.) * blend_params.sigma, 
-            faces_per_pixel=100, 
-            bin_size=0)
-        # Create a silhouette mesh renderer by composing a rasterizer and a shader. 
-        silhouette_renderer = MeshRenderer(
-            rasterizer=MeshRasterizer(
-                cameras=cameras, 
-                raster_settings=raster_settings),
-            shader=SoftSilhouetteShader(blend_params=blend_params))
-
-    ## Select the viewpoint using spherical angles  
-    #distance = 10   # distance from camera to the object
-    #elevation = 50.0   # angle of elevation in degrees
-    #azimuth = 10.0  # No rotation so the camera is positioned on the +Z axis. 
-    ## Get the position of the camera based on the spherical angles
-    #R, T = look_at_view_transform(distance, elevation, azimuth, device=device)
-    ## Render the teapot providing the values of R and T. 
-    #silhouete = silhouette_renderer(meshes_world=src_mesh, R=R, T=T)
-    #simg = silhouete.cpu().numpy()
-    #cv2.imwrite('/root/silhouette_renderer_test.png', simg.squeeze())
-    ##pdb.set_trace()
 
     ## ---- SET UP/load in trained graph convolutional NN classification model ---- ##
-    if args_.mesh_acousticparam_optim:
-        #graphconv_model_path = '/root/graphconvnet_classification_results/model/exp_02_17_02_06_41_overfit'
-        graphconv_model_path = args_.trained_graphnet_weights #'/storage/graphconvnet_acousticparampred_results/exp_03_10_11_57_39_concerthalloptim'
-        cfg = Config(args_.config_path)
-        desired_acoustic_params = torch.tensor([float(ap) for ap in args_.which_acoustic_params.split(',')], dtype=torch.float32, device=device)
-        ## ---- SET UP model and optimizer ---- ##
-        acousticoptim_net_model = GraphConvClf(cfg).cuda()
-        #acousticoptim_net_model.load_state_dict(torch.load(graphconv_model_path+'/model@epoch'+str(idx_best_loss)+'.pkl', map_location=torch.device('cpu'))['state_dict'])
-        acousticoptim_net_model.load_state_dict(torch.load(graphconv_model_path, map_location=torch.device('cpu'))['state_dict'])
-        ## freeze the parameters for the classification model
-        for pp in acousticoptim_net_model.parameters():
-            pp.requires_grad=False
+    graphconv_model_path = args_.trained_graphnet_weights #'/storage/graphconvnet_acousticparampred_results/exp_03_10_11_57_39_concerthalloptim'
+    cfg = Config(args_.config_path)
+    desired_params = torch.tensor([float(ap) for ap in args_.which_params.split(',')], dtype=torch.float32, device=device)
+    ## ---- SET UP model and optimizer ---- ##
+    optim_net_model = GraphConvClf(cfg).cuda()
+    #acousticoptim_net_model.load_state_dict(torch.load(graphconv_model_path+'/model@epoch'+str(idx_best_loss)+'.pkl', map_location=torch.device('cpu'))['state_dict'])
+    optim_net_model.load_state_dict(torch.load(graphconv_model_path, map_location=torch.device('cpu'))['state_dict'])
+    ## freeze the parameters for the classification model
+    for pp in optim_net_model.parameters():
+        pp.requires_grad=False
             
     ## ---- SET UP optimization variables of mesh ---- ##
     ITERS = args_.num_iteration  
@@ -282,12 +189,8 @@ if __name__ == "__main__":
         
         ## Calculate loss on deformed mesh
         if args_.mesh_acousticparam_optim:
-            loss_acoustic = acousticparam_loss(new_src_mesh, acousticoptim_net_model, desired_acoustic_params)
-            loss+=args_.mesh_acousticparam_optim_weight*loss_acoustic
-
-        if args_.mesh_multisilhouette_optim:
-            loss_sil, sil_images = mesh_multisilhouette_optim(new_src_mesh, camera_poses, silhouette_ref, silhouette_renderer, device)
-            loss+=args_.mesh_multisilhouette_optim_weight*loss_sil
+            loss_ = param_loss(new_src_mesh, optim_net_model, desired_params, args_.mesh_aestheticparam_optim_weights)
+            loss+=loss_
 
         if args_.mesh_laplacian_smoothing: 
             ## add mesh laplacian smoothing
@@ -307,10 +210,6 @@ if __name__ == "__main__":
             gif_pointcloud(new_src_mesh, os.path.join(output_dir, ofname+'.gif'), title=ofname)
             #plot_pointcloud(new_src_mesh, title=args_.filename_output+"iter_%d" % iter_)
             #
-            ## if using a silhoutte loss, view silhouettes from each camera
-            if args_.mesh_multisilhouette_optim:
-                sublot_intermediate_renders(silhouette_ref, sil_images, os.path.join(output_dir, ofname+".png"))
-                #
             print('Iteration: '+str(iter_) + ' Loss: '+str(loss.cpu().detach().numpy()))
             #
         ## apply loss 
