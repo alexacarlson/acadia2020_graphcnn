@@ -13,7 +13,7 @@ OUT_NAME=${10}
 NUM_ITERS=${11}
 CFG_PATH=${12}
 
-python obj_optim_acousticparams.py \
+python obj_optim_aestheticparams.py \
   --which_starting_mesh ${MESH} \
   --trained_graphnet_weights ${TRAINED_GRAPH} \
   --mesh_param_optim_weight ${ACOUST_DEFORM_WEIGHT} \
