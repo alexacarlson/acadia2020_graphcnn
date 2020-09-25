@@ -55,7 +55,7 @@ def train_val_split_mesh2aesthetics(config, ratio=0.7):
         return vec_
     print("Splitting Dataset..")
     data_dir = os.path.join(config.SHAPENET_DATA.PATH, 'Separated')
-    _params_csv = os.path.join(config.SHAPENET_DATA.PATH, 'NamingBookV2.csv')
+    _params_csv = os.path.join(config.SHAPENET_DATA.PATH, 'NamingBookV3.csv')
 
     ## read in params
     tmp_objs = []
