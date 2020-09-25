@@ -69,7 +69,7 @@ def train_val_split_mesh2aesthetics(config, ratio=0.7):
         for row in sreader:    
             #if 'set36' not in row[0] or 'house21' not in row[0]:
             #    continue
-            if np.any([rr=='' for rr in row]):
+            if np.any([rr=='' for rr in row]) or np.any([rr=='#' for rr in row]):
                 ## skip empty lines or models with incomplete labels
                 continue
             objpath = os.path.join(data_dir,row[0])
