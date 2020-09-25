@@ -67,7 +67,7 @@ def train_val_split_mesh2aesthetics(config, ratio=0.7):
         next(sreader)
         next(sreader)
         for row in sreader:    
-            if np.any([rr=='' for rr in pp[-31]]):
+            if np.any([rr=='' for rr in row]):
                 ## skip empty lines or models with incomplete labels
                 continue
             objpath = os.path.join(data_dir,row[0])
