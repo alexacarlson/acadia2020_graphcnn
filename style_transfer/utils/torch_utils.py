@@ -67,8 +67,8 @@ def train_val_split_mesh2aesthetics(config, ratio=0.7):
         next(sreader)
         next(sreader)
         for row in sreader:    
-            #if 'set36' not in row[0] or 'house21' not in row[0]:
-            #    continue
+            if 'set36' not in row[0] or 'house21' not in row[0]:
+                continue
             if np.any([rr=='' for rr in row]) or np.any([rr=='#' for rr in row]):
                 ## skip empty lines or models with incomplete labels
                 continue
@@ -78,8 +78,8 @@ def train_val_split_mesh2aesthetics(config, ratio=0.7):
             #params = [float(pp.replace(',','')) for pp in row[1:5]]
             tmp_objs.append([params, objpath])
             #print( objpath, params, unproc_params)
-    print(len(tmp_objs))
-    pdb.set_trace()
+    #print(len(tmp_objs))
+    #pdb.set_trace()
     trn_objs = tmp_objs[:int(len(tmp_objs)*0.9)]
     val_objs = tmp_objs[int(len(tmp_objs)*0.9):]
     #for cls in tqdm(classes):
