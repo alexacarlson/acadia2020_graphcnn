@@ -60,6 +60,8 @@ def train_val_split_mesh2aesthetics(config, ratio=0.7):
 
     ## read in params
     tmp_objs = []
+    tester_func=[]
+    tester_aesth=[]
     STYLECLASSESDICT={'baroque':0, 'modern':1,'moden':1, 'classic':1, '(Insert Label)':1, 'cubist':2, 'cu':2, 'cubism':2, 'Cubism':2}
     SEMANTICCLASSESDICT={'house':0, 'House':0, 'column':1, 'Column':1}
     with open(_params_csv, newline='') as csvfile:
@@ -78,7 +80,11 @@ def train_val_split_mesh2aesthetics(config, ratio=0.7):
                 params  = [STYLECLASSESDICT[unproc_params[0]], SEMANTICCLASSESDICT[unproc_params[1]], int(unproc_params[2]), int(unproc_params[3]) ]
                 #params = [float(pp.replace(',','')) for pp in row[1:5]]
                 tmp_objs.append([params, objpath])
+                tester_func.append(int(unproc_params[2]))
+                tester_aesth.append(int(unproc_params[3]))
                 #print( objpath, params, unproc_params)
+    print(np.max(tester_func), np.min(tester_func), np.unique(tester_func))
+    print(np.max(tester_aesth), np.min(tester_aesth), np.unique(tester_aesth))
     #print(len(tmp_objs))
     #pdb.set_trace()
     trn_objs = tmp_objs[:int(len(tmp_objs)*0.9)]
