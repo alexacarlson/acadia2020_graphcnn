@@ -36,8 +36,8 @@ class GraphConvClf(nn.Module):
         nn.init.constant_(self.fc_semantics.bias, 0)
         nn.init.normal_(self.fc_functionality.weight, mean=0.0, std=0.01)
         nn.init.constant_(self.fc_functionality.bias, 0)
-        nn.init.normal_(self.fc_aesthetic.weight, mean=0.0, std=0.01)
-        nn.init.constant_(self.fc_aesthetic.bias, 0)
+        nn.init.normal_(self.fc_aesthetics.weight, mean=0.0, std=0.01)
+        nn.init.constant_(self.fc_aesthetics.bias, 0)
         
     def forward(self, mesh):
         verts = mesh.verts_packed()
