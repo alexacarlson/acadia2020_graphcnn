@@ -99,21 +99,27 @@ if __name__ == "__main__":
 
     model = GraphConvClf(_C).cuda()
 
-#     optimizer = optim.SGD(
-#         model.parameters(),
-#         lr=_C.OPTIM.LR,
-#         momentum=_C.OPTIM.MOMENTUM,
-#         weight_decay=_C.OPTIM.WEIGHT_DECAY,
-#     )
+##     optimizer = optim.SGD(
+##         model.parameters(),
+##         lr=_C.OPTIM.LR,
+##         momentum=_C.OPTIM.MOMENTUM,
+##         weight_decay=_C.OPTIM.WEIGHT_DECAY,
+##     )
+#
+#   optimizer = optim.Adam(
+#        model.parameters(),
+#        lr=_C.OPTIM.LR,
+#    )
+    loss_weightvars = nn.Parameter(torch.zeros((4)))
     optimizer = optim.Adam(
-        model.parameters(),
+        [{'params':model.parameters()},{'params':loss_weightvars}],
         lr=_C.OPTIM.LR,
     )
-#     lr_scheduler = optim.lr_scheduler.LambdaLR(  # type: ignore
-#         optimizer, lr_lambda=lambda iteration: 1 - iteration / _C.OPTIM.NUM_ITERATIONS
-#     )
+##     lr_scheduler = optim.lr_scheduler.LambdaLR(  # type: ignore
+##         optimizer, lr_lambda=lambda iteration: 1 - iteration / _C.OPTIM.NUM_ITERATIONS
+##     )
 
-    criterion = nn.BCEloss() #nn.MSELoss() #nn.CrossEntropyLoss()
+    criterion = nn.CrossEntropyLoss() #nn.MSELoss() #nn.CrossEntropyLoss()
     args  = {}
     args['EXPERIMENT_NAME'] =  _C.EXPERIMENT_NAME
     args['full_experiment_name'] = _C.CKP.full_experiment_name
@@ -142,13 +148,22 @@ if __name__ == "__main__":
             optimizer.zero_grad()
             # forward + backward + optimize
             outputs = model(mesh)
-            #print(outputs, label)
-            loss = criterion(outputs, label)
-            loss.backward()
+            ##print(outputs, label)
+            #loss = criterion(outputs, label)
+            loss_style = criterion(outputs[0], label[0])
+            loss_semantic = criterion(outputs[1], label[1])
+            loss_functionality = criterion(outputs[2], label[2])
+            loss_aesthetic = criterion(outputs[3], label[3])
+            loss_total = torch.exp(-loss_weightvars[0])*loss_style + \
+                         torch.exp(-loss_weightvars[1])*loss_semantic + \
+                         torch.exp(-loss_weightvars[2])*loss_functionality + \
+                         torch.exp(-loss_weightvars[3])*loss_aesthetic
+            loss_total.backward()
             optimizer.step()
 #             lr_scheduler.step()
             # print statistics
-            running_loss += loss.item()
+            #running_loss += loss.item()
+            running_loss += loss_total.item()
         running_loss /= len(trn_dataloader)
         print('\n\tTraining Loss: '+ str(running_loss))
         loss_tracker.append(running_loss)
@@ -171,10 +186,20 @@ if __name__ == "__main__":
         label = data[0].cuda()
         mesh = data[1].cuda()
         with torch.no_grad():
-            batch_prediction = model(mesh)
-            loss = criterion(batch_prediction, label)
-            #acc = accuracy(batch_prediction, label)
-            val_loss += loss.item()
+            #batch_prediction = model(mesh)
+            outputs = model(mesh)
+            #loss = criterion(batch_prediction, label)
+            loss_style = criterion(outputs[0], label[0])
+            loss_semantic = criterion(outputs[1], label[1])
+            loss_functionality = criterion(outputs[2], label[2])
+            loss_aesthetic = criterion(outputs[3], label[3])
+            loss_total = torch.exp(-loss_weightvars[0])*loss_style + \
+                         torch.exp(-loss_weightvars[1])*loss_semantic + \
+                         torch.exp(-loss_weightvars[2])*loss_functionality + \
+                         torch.exp(-loss_weightvars[3])*loss_aesthetic
+            ##acc = accuracy(batch_prediction, label)
+            #val_loss += loss.item()
+            val_loss += loss_total.item()
             #val_acc += np.sum(acc)
     # Average out the loss
     val_loss /= len(val_dataloader)
