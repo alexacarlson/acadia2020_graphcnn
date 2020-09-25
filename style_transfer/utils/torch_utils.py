@@ -54,11 +54,13 @@ def train_val_split_mesh2aesthetics(config, ratio=0.7):
         ## FILL in
         return vec_
     print("Splitting Dataset..")
-    data_dir = os.path.join(config.SHAPENET_DATA.PATH, 'OBJdatabase')
-    _params_csv = os.path.join(config.SHAPENET_DATA.PATH, 'NamingParameters.csv')
+    data_dir = os.path.join(config.SHAPENET_DATA.PATH, 'Separated')
+    _params_csv = os.path.join(config.SHAPENET_DATA.PATH, 'NamingBookV2.csv')
 
     ## read in params
     tmp_objs = []
+    STYLECLASSESDICT={'baroque':0, 'modern':1, 'cubist':2}
+    SEMANTICCLASSESDICT={'house':0, 'column':1}
     with open(_params_csv, newline='') as csvfile:
         sreader = csv.reader(csvfile, delimiter=',')
         ## skip first two lines of csv file
@@ -66,9 +68,11 @@ def train_val_split_mesh2aesthetics(config, ratio=0.7):
         next(sreader)
         for row in sreader:                
             objpath = os.path.join(data_dir,row[0])
-            params = [float(pp.replace(',','')) for pp in row[1:5]]
+            unproc_params = [pp for pp in row[1:5]]
+            params  = [STYLECLASSESDICT[unproc_params[0]], SEMANTICCLASSESDICT[unproc_params[1]], int(unproc_params[2]), int(unproc_params[3]) ]
+            #params = [float(pp.replace(',','')) for pp in row[1:5]]
             tmp_objs.append([params, objpath])
-            #pdb.set_trace()
+            pdb.set_trace()
     trn_objs = tmp_objs[:int(len(tmp_objs)*0.9)]
     val_objs = tmp_objs[int(len(tmp_objs)*0.9):]
     #for cls in tqdm(classes):
