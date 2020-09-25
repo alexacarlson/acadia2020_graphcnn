@@ -69,11 +69,11 @@ def train_val_split_mesh2aesthetics(config, ratio=0.7):
         for row in sreader:                
             objpath = os.path.join(data_dir,row[0])
             unproc_params = [pp for pp in row[1:5]]
-            params  = [STYLECLASSESDICT[unproc_params[0]], SEMANTICCLASSESDICT[unproc_params[1]], int(unproc_params[2]), int(unproc_params[3]) ]
+            params  = [STYLECLASSESDICT[unproc_params[0]], SEMANTICCLASSESDICT[unproc_params[1]], int(unproc_params[2])-1, int(unproc_params[3])-1 ]
             #params = [float(pp.replace(',','')) for pp in row[1:5]]
             tmp_objs.append([params, objpath])
-            print( objpath, params, unproc_params)
-            pdb.set_trace()
+            #print( objpath, params, unproc_params)
+            #pdb.set_trace()
     trn_objs = tmp_objs[:int(len(tmp_objs)*0.9)]
     val_objs = tmp_objs[int(len(tmp_objs)*0.9):]
     #for cls in tqdm(classes):
