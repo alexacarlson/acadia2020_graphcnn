@@ -67,7 +67,7 @@ def train_val_split_mesh2aesthetics(config, ratio=0.7):
         next(sreader)
         next(sreader)
         for row in sreader:
-            print(row[0])
+            #print(row[0])
             if 'set36' in row[0] or 'house21' in row[0]:
                 if np.any([rr=='' for rr in row]) or np.any([rr=='#' for rr in row]):
                     ## skip empty lines or models with incomplete labels
