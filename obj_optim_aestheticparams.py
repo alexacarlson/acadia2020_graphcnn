@@ -202,11 +202,11 @@ if __name__ == "__main__":
         print(new_src_mesh)
         
         ## Calculate loss on deformed mesh
-        outputs = torch.squeeze(net_model.forward(new_src_mesh))
-        loss_style = criterion_style(outputs[0], desired_params[0].long())
-        loss_semantic = criterion_sem(outputs[1], desired_params[1].long())
-        loss_functionality = criterion_func(outputs[2], desired_params[2].long())
-        loss_aesthetic = criterion_aesth(outputs[3], desired_params[3].long())
+        outputs = net_model.forward(new_src_mesh)
+        loss_style = criterion_style(torch.squeeze(outputs[0]), desired_params[0].long())
+        loss_semantic = criterion_sem(torch.squeeze(outputs[1]), desired_params[1].long())
+        loss_functionality = criterion_func(torch.squeeze(outputs[2]), desired_params[2].long())
+        loss_aesthetic = criterion_aesth(torch.squeeze(outputs[3]), desired_params[3].long())
         loss_ = loss_style + loss_semantic + loss_functionality + loss_aesthetic
         #loss_ = param_loss(new_src_mesh, optim_net_model, desired_params, args_.mesh_aestheticparam_optim_weights)
         loss+=loss_
