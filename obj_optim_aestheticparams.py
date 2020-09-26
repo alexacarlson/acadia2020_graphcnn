@@ -159,7 +159,7 @@ if __name__ == "__main__":
     semp = SEMANTICCLASSESDICT[args_.semantic_param]
     funcp = int(args_.functionvalue_param)-1 if int(args_.functionvalue_param) <=4 else 4-1
     aesthp= int(args_.aestheticvalue_param)-1 if int(args_.aestheticvalue_param)<=5 else 5-1
-    desired_params  = [stylep, semp, funcp, aesthp ]
+    desired_params  = [torch.Tensor(stylep), torch.Tensor(semp), torch.Tensor(funcp), torch.Tensor(aesthp) ]
     ## ---- SET UP model and optimizer ---- ##
     net_model = GraphConvClf(cfg).cuda()
     #acousticoptim_net_model.load_state_dict(torch.load(graphconv_model_path+'/model@epoch'+str(idx_best_loss)+'.pkl', map_location=torch.device('cpu'))['state_dict'])
@@ -202,10 +202,10 @@ if __name__ == "__main__":
         
         ## Calculate loss on deformed mesh
         outputs = net_model.forward(new_src_mesh)
-        loss_style = criterion_style(outputs[0], label[:,0].long())
-        loss_semantic = criterion_sem(outputs[1], label[:,1].long())
-        loss_functionality = criterion_func(outputs[2], label[:,2].long())
-        loss_aesthetic = criterion_aesth(outputs[3], label[:,3].long())
+        loss_style = criterion_style(outputs[0], desired_params[0].long())
+        loss_semantic = criterion_sem(outputs[1], desired_params[1].long())
+        loss_functionality = criterion_func(outputs[2], desired_params[2].long())
+        loss_aesthetic = criterion_aesth(outputs[3], desired_params[3].long())
         loss_ = loss_style + loss_semantic + loss_functionality + loss_aesthetic
         #loss_ = param_loss(new_src_mesh, optim_net_model, desired_params, args_.mesh_aestheticparam_optim_weights)
         loss+=loss_
