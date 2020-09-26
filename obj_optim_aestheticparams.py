@@ -201,14 +201,13 @@ if __name__ == "__main__":
         #print(deform_verts)
         
         ## Calculate loss on deformed mesh
-        if args_.mesh_acousticparam_optim:
-            loss_style = criterion_style(outputs[0], label[:,0].long())
-            loss_semantic = criterion_sem(outputs[1], label[:,1].long())
-            loss_functionality = criterion_func(outputs[2], label[:,2].long())
-            loss_aesthetic = criterion_aesth(outputs[3], label[:,3].long())
-            loss_ = loss_style + loss_semantic + loss_functionality + loss_aesthetic
-            #loss_ = param_loss(new_src_mesh, optim_net_model, desired_params, args_.mesh_aestheticparam_optim_weights)
-            loss+=loss_
+        loss_style = criterion_style(outputs[0], label[:,0].long())
+        loss_semantic = criterion_sem(outputs[1], label[:,1].long())
+        loss_functionality = criterion_func(outputs[2], label[:,2].long())
+        loss_aesthetic = criterion_aesth(outputs[3], label[:,3].long())
+        loss_ = loss_style + loss_semantic + loss_functionality + loss_aesthetic
+        #loss_ = param_loss(new_src_mesh, optim_net_model, desired_params, args_.mesh_aestheticparam_optim_weights)
+        loss+=loss_
 
         if args_.mesh_laplacian_smoothing: 
             ## add mesh laplacian smoothing
