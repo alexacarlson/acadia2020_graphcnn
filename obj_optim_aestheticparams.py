@@ -84,7 +84,7 @@ def gif_pointcloud(mesh, filename, title=""):
     #plt.savefig(title+'.png')
     #plt.show()
     
-def aestheticparam_loss(input_mesh, net_model, desired_params):
+def param_loss(input_mesh, net_model, desired_params):
         # compute loss
         nnpred =  torch.squeeze(net_model.forward(input_mesh))
         #var_line_length = get_var_line_length_loss(self.mesh.vertices, self.mesh.faces)
@@ -151,7 +151,14 @@ if __name__ == "__main__":
     ## ---- SET UP/load in trained graph convolutional NN classification model ---- ##
     graphconv_model_path = args_.trained_graphnet_weights #'/storage/graphconvnet_acousticparampred_results/exp_03_10_11_57_39_concerthalloptim'
     cfg = Config(args_.config_path)
-    desired_params = torch.tensor([float(ap) for ap in args_.which_params.split(',')], dtype=torch.float32, device=device)
+    #desired_params = torch.tensor([float(ap) for ap in args_.which_params.split(',')], dtype=torch.float32, device=device)
+    STYLECLASSESDICT={'baroque':0, 'modern':0, 'moden':0, 'classic':0, '(Insert Label)':0, 'cubist':1, 'cubims':1, 'cu':1, 'cubism':1, 'Cubism':1}
+    SEMANTICCLASSESDICT={'house':0, 'House':0, 'column':1, 'Column':1}
+    stylep = STYLECLASSESDICT[args_.style_param]
+    semp = SEMANTICCLASSESDICT[args_.semantic_param]
+    funcp = int(args_.functionvalue_param)-1 if int(args_.functionvalue_param) <=4 else 4-1
+    aesthp= int(args_.aestheticvalue_param)-1 if int(args_.aestheticvalue_param)<=5 else 5-1
+    desired_params  = [stylep, semp, funcp, aesthp ]
     ## ---- SET UP model and optimizer ---- ##
     optim_net_model = GraphConvClf(cfg).cuda()
     #acousticoptim_net_model.load_state_dict(torch.load(graphconv_model_path+'/model@epoch'+str(idx_best_loss)+'.pkl', map_location=torch.device('cpu'))['state_dict'])
@@ -176,7 +183,12 @@ if __name__ == "__main__":
     # --------------------------------------------------------------------------------------------
     print('\n ***************** Deforming *****************') 
 
-    #for iter_ in tqdm(range(ITERS)):    
+       
+    criterion_style = nn.CrossEntropyLoss() #nn.MSELoss() #nn.CrossEntropyLoss()
+    criterion_sem = nn.CrossEntropyLoss() #nn.MSELoss() #nn.CrossEntropyLoss()
+    criterion_func = nn.CrossEntropyLoss() #nn.MSELoss() #nn.CrossEntropyLoss()
+    criterion_aesth = nn.CrossEntropyLoss() #nn.MSELoss() #nn.CrossEntropyLoss()
+    #for iter_ in tqdm(range(ITERS)): 
     for iter_ in range(ITERS):    
         #
         loss=0
@@ -189,13 +201,18 @@ if __name__ == "__main__":
         
         ## Calculate loss on deformed mesh
         if args_.mesh_acousticparam_optim:
-            loss_ = param_loss(new_src_mesh, optim_net_model, desired_params, args_.mesh_aestheticparam_optim_weights)
+            loss_style = criterion_style(outputs[0], label[:,0].long())
+            loss_semantic = criterion_sem(outputs[1], label[:,1].long())
+            loss_functionality = criterion_func(outputs[2], label[:,2].long())
+            loss_aesthetic = criterion_aesth(outputs[3], label[:,3].long())
+            loss_ = loss_style + loss_semantic + loss_functionality + loss_aesthetic
+            #loss_ = param_loss(new_src_mesh, optim_net_model, desired_params, args_.mesh_aestheticparam_optim_weights)
             loss+=loss_
 
         if args_.mesh_laplacian_smoothing: 
             ## add mesh laplacian smoothing
             loss_laplacian = mesh_laplacian_smoothing(new_src_mesh, method="uniform")
-            loss+=0.1*loss_laplacian
+            loss+=0.5*loss_laplacian
 
         ## Plot mesh
         if iter_ % plot_period == 0:
