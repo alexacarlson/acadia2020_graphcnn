@@ -106,15 +106,15 @@ if __name__ == "__main__":
 ##         weight_decay=_C.OPTIM.WEIGHT_DECAY,
 ##     )
 #
-#   optimizer = optim.Adam(
-#        model.parameters(),
-#        lr=_C.OPTIM.LR,
-#    )
-    #loss_weightvars = torch.Tensor(torch.ones((4)), requires_grad=True).cuda()
-    optimizer = optim.Adam(
-        [{'params':model.parameters()},{'params':loss_weightvars}],
+   optimizer = optim.Adam(
+        model.parameters(),
         lr=_C.OPTIM.LR,
     )
+    #loss_weightvars = torch.Tensor(torch.ones((4)), requires_grad=True).cuda()
+    #optimizer = optim.Adam(
+    #    [{'params':model.parameters()},{'params':loss_weightvars}],
+    #    lr=_C.OPTIM.LR,
+    #)
 ##     lr_scheduler = optim.lr_scheduler.LambdaLR(  # type: ignore
 ##         optimizer, lr_lambda=lambda iteration: 1 - iteration / _C.OPTIM.NUM_ITERATIONS
 ##     )
