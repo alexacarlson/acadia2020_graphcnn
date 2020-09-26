@@ -110,7 +110,7 @@ if __name__ == "__main__":
 #        model.parameters(),
 #        lr=_C.OPTIM.LR,
 #    )
-    loss_weightvars = nn.Variable(torch.ones((4)), requires_grad=True).cuda()
+    loss_weightvars = torch.Tensor(torch.ones((4)), requires_grad=True).cuda()
     optimizer = optim.Adam(
         [{'params':model.parameters()},{'params':loss_weightvars}],
         lr=_C.OPTIM.LR,
