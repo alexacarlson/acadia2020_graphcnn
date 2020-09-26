@@ -193,14 +193,15 @@ if __name__ == "__main__":
             #batch_prediction = model(mesh)
             outputs = model(mesh)
             #loss = criterion(batch_prediction, label)
-            loss_style = criterion(outputs[0], label[0])
-            loss_semantic = criterion(outputs[1], label[1])
-            loss_functionality = criterion(outputs[2], label[2])
-            loss_aesthetic = criterion(outputs[3], label[3])
-            loss_total = torch.exp(-loss_weightvars[0])*loss_style + \
-                         torch.exp(-loss_weightvars[1])*loss_semantic + \
-                         torch.exp(-loss_weightvars[2])*loss_functionality + \
-                         torch.exp(-loss_weightvars[3])*loss_aesthetic
+            loss_style = criterion_style(outputs[0], label[0])
+            loss_semantic = criterion_sem(outputs[1], label[1])
+            loss_functionality = criterion_func(outputs[2], label[2])
+            loss_aesthetic = criterion_aesth(outputs[3], label[3])
+            #loss_total = torch.exp(-loss_weightvars[0])*loss_style + \
+            #             torch.exp(-loss_weightvars[1])*loss_semantic + \
+            #             torch.exp(-loss_weightvars[2])*loss_functionality + \
+            #             torch.exp(-loss_weightvars[3])*loss_aesthetic
+            loss_total = loss_style + loss_semantic + loss_functionality + loss_aesthetic
             ##acc = accuracy(batch_prediction, label)
             #val_loss += loss.item()
             val_loss += loss_total.item()
