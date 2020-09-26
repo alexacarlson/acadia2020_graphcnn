@@ -118,7 +118,10 @@ if __name__ == "__main__":
     ##     lr_scheduler = optim.lr_scheduler.LambdaLR(  # type: ignore
     ##         optimizer, lr_lambda=lambda iteration: 1 - iteration / _C.OPTIM.NUM_ITERATIONS
     ##     )
-    criterion = nn.CrossEntropyLoss() #nn.MSELoss() #nn.CrossEntropyLoss()
+    criterion_style = nn.CrossEntropyLoss() #nn.MSELoss() #nn.CrossEntropyLoss()
+    criterion_sem = nn.CrossEntropyLoss() #nn.MSELoss() #nn.CrossEntropyLoss()
+    criterion_func = nn.CrossEntropyLoss() #nn.MSELoss() #nn.CrossEntropyLoss()
+    criterion_aesth = nn.CrossEntropyLoss() #nn.MSELoss() #nn.CrossEntropyLoss()
     args  = {}
     args['EXPERIMENT_NAME'] =  _C.EXPERIMENT_NAME
     args['full_experiment_name'] = _C.CKP.full_experiment_name
@@ -152,10 +155,10 @@ if __name__ == "__main__":
             print(outputs[2].shape, label[2].shape)
             print(outputs[3].shape, label[3].shape)
             #loss = criterion(outputs, label)
-            loss_style = criterion(outputs[0], label[0].long())
-            loss_semantic = criterion(outputs[1], label[1].long())
-            loss_functionality = criterion(outputs[2], label[2].long())
-            loss_aesthetic = criterion(outputs[3], label[3].long())
+            loss_style = criterion_style(outputs[0], label[0].long())
+            loss_semantic = criterion_sem(outputs[1], label[1].long())
+            loss_functionality = criterion_func(outputs[2], label[2].long())
+            loss_aesthetic = criterion_aesth(outputs[3], label[3].long())
             #loss_total = torch.exp(-loss_weightvars[0])*loss_style + torch.exp(-loss_weightvars[1])*loss_semantic + torch.exp(-loss_weightvars[2])*loss_functionality + torch.exp(-loss_weightvars[3])*loss_aesthetic
             loss_total = loss_style + loss_semantic + loss_functionality + loss_aesthetic
             loss_total.backward()
