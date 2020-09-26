@@ -86,7 +86,7 @@ def train_val_split_mesh2aesthetics(config, ratio=0.7):
                 aesthp= int(unproc_params[3])-1 if int(unproc_params[3])<=5 else 5-1
                 params  = [stylep, semp, funcp, aesthp ]
                 #params = [float(pp.replace(',','')) for pp in row[1:5]]
-                tmp_objs.append([params, objpath])
+                tmp_objs.append((params, objpath))
                 tester_style.append(stylep)
                 tester_sem.append(semp)
                 tester_func.append(funcp)
