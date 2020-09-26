@@ -161,11 +161,11 @@ if __name__ == "__main__":
     aesthp= int(args_.aestheticvalue_param)-1 if int(args_.aestheticvalue_param)<=5 else 5-1
     desired_params  = [stylep, semp, funcp, aesthp ]
     ## ---- SET UP model and optimizer ---- ##
-    optim_net_model = GraphConvClf(cfg).cuda()
+    net_model = GraphConvClf(cfg).cuda()
     #acousticoptim_net_model.load_state_dict(torch.load(graphconv_model_path+'/model@epoch'+str(idx_best_loss)+'.pkl', map_location=torch.device('cpu'))['state_dict'])
-    optim_net_model.load_state_dict(torch.load(graphconv_model_path, map_location=torch.device('cpu'))['state_dict'])
+    net_model.load_state_dict(torch.load(graphconv_model_path, map_location=torch.device('cpu'))['state_dict'])
     ## freeze the parameters for the classification model
-    for pp in optim_net_model.parameters():
+    for pp in net_model.parameters():
         pp.requires_grad=False
             
     ## ---- SET UP optimization variables of mesh ---- ##
@@ -201,6 +201,7 @@ if __name__ == "__main__":
         #print(deform_verts)
         
         ## Calculate loss on deformed mesh
+        outputs = net_model.forward(input_mesh)
         loss_style = criterion_style(outputs[0], label[:,0].long())
         loss_semantic = criterion_sem(outputs[1], label[:,1].long())
         loss_functionality = criterion_func(outputs[2], label[:,2].long())
