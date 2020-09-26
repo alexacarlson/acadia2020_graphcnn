@@ -125,7 +125,8 @@ if __name__ == "__main__":
     #device = torch.device("cpu")
     #
     ## make the output directory if necessary 
-    output_dir = '/storage/results_%s_optim_style%s_semantic%s_func%s_aesth%s'%(str(args_.starting_mesh), str(args_.style_param), str(args_.semantic_param), str(args_.functionvalue_param), str(args_.aestheticvalue_param))
+    meshid = os.path.splitext(os.path.split(args_.starting_mesh)[1])[0]
+    output_dir = '/storage/results_%s_optim_style%s_semantic%s_func%s_aesth%s'%(str(meshid), str(args_.style_param), str(args_.semantic_param), str(args_.functionvalue_param), str(args_.aestheticvalue_param))
     print('Saving optim results to %s'%(output_dir))
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
