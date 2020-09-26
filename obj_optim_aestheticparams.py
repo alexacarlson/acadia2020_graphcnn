@@ -159,7 +159,7 @@ if __name__ == "__main__":
     semp = SEMANTICCLASSESDICT[args_.semantic_param]
     funcp = int(args_.functionvalue_param)-1 if int(args_.functionvalue_param) <=4 else 4-1
     aesthp= int(args_.aestheticvalue_param)-1 if int(args_.aestheticvalue_param)<=5 else 5-1
-    desired_params  = [torch.Tensor(stylep).long().cuda(), torch.Tensor(semp).long().cuda(), torch.Tensor(funcp).long().cuda(), torch.Tensor(aesthp).long().cuda() ]
+    desired_params  = torch.Tensor([stylep, semp, funcp, aesthp]).long().cuda()
     print([torch.Tensor([stylep]), torch.Tensor([semp]), torch.Tensor([funcp]), torch.Tensor([aesthp])])
     print(torch.Tensor([stylep, semp, funcp, aesthp]).long().cuda())
     print(desired_params)
