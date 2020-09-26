@@ -140,7 +140,7 @@ if __name__ == "__main__":
         src_mesh = ico_plane(2., 3., 2, precision = 1.0, z = 0.0, color = None, device=device)
     elif os.path.isfile(args_.starting_mesh):
         ## FOR loading in input mesh from file
-        verts, faces, aux=load_obj(args_.which_starting_mesh)
+        verts, faces, aux=load_obj(args_.starting_mesh)
         faces_idx = faces.verts_idx.to(device)
         verts = verts.to(device)
         src_mesh = Meshes(verts=[verts], faces=[faces_idx])
