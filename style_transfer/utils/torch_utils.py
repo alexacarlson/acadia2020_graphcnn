@@ -96,7 +96,7 @@ def train_val_split_mesh2aesthetics(config, ratio=0.7):
     #print(np.max(tester_sem), np.min(tester_sem), np.unique(tester_sem))
     #print(np.max(tester_func), np.min(tester_func), np.unique(tester_func))
     #print(np.max(tester_aesth), np.min(tester_aesth), np.unique(tester_aesth))
-    print(len(tmp_objs))
+    #print(len(tmp_objs))
     #pdb.set_trace()
     trn_objs = tmp_objs[:int(len(tmp_objs)*0.9)]
     val_objs = tmp_objs[int(len(tmp_objs)*0.9):]
