@@ -150,7 +150,7 @@ if __name__ == "__main__":
             optimizer.zero_grad()
             # forward + backward + optimize
             outputs = model(mesh)
-            print(len(outputs), len(label))
+            print(len(outputs), len(label), len(mesh))
             print(outputs[0].shape, label[0].shape, label[0])
             print(outputs[1].shape, label[1].shape, label[1])
             print(outputs[2].shape, label[2].shape, label[2])
