@@ -84,19 +84,19 @@ def train_val_split_mesh2aesthetics(config, ratio=0.7):
                 semp = SEMANTICCLASSESDICT[unproc_params[1]]
                 funcp = int(unproc_params[2])-1 if int(unproc_params[3]) <=4 else 4-1
                 aesthp= int(unproc_params[3])-1 if int(unproc_params[3])<=5 else 5-1
-                params  = [stylep, semp, funcp, aesthp ]
+                params  = np.array([stylep, semp, funcp, aesthp ])
                 #params = [float(pp.replace(',','')) for pp in row[1:5]]
                 tmp_objs.append((params, objpath))
                 #tester_style.append(stylep)
                 #tester_sem.append(semp)
                 #tester_func.append(funcp)
                 #tester_aesth.append(aesthp)
-                print( objpath, params, unproc_params)
+                #print( objpath, params, unproc_params)
     #print(np.max(tester_style), np.min(tester_style), np.unique(tester_style))
     #print(np.max(tester_sem), np.min(tester_sem), np.unique(tester_sem))
     #print(np.max(tester_func), np.min(tester_func), np.unique(tester_func))
     #print(np.max(tester_aesth), np.min(tester_aesth), np.unique(tester_aesth))
-    #print(len(tmp_objs))
+    print(len(tmp_objs))
     #pdb.set_trace()
     trn_objs = tmp_objs[:int(len(tmp_objs)*0.9)]
     val_objs = tmp_objs[int(len(tmp_objs)*0.9):]
