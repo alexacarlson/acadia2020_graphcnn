@@ -199,6 +199,7 @@ if __name__ == "__main__":
         ## Deform the mesh
         new_src_mesh = src_mesh.offset_verts(deform_verts)
         #print(deform_verts)
+        print(new_src_mesh)
         
         ## Calculate loss on deformed mesh
         outputs = torch.squeeze(net_model.forward(new_src_mesh))
