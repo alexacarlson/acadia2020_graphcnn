@@ -24,7 +24,7 @@ class GraphConvClf(nn.Module):
         #self.fc2 = nn.Linear(1024, classes)
         self.fc_style = nn.Linear(1024, 3)
         self.fc_semantics = nn.Linear(1024, 2)
-        self.fc_functionality = nn.Linear(1024, 5)
+        self.fc_functionality = nn.Linear(1024, 4)
         self.fc_aesthetics = nn.Linear(1024, 5)
         
         nn.init.normal_(self.fc1.weight, mean=0.0, std=0.01)
