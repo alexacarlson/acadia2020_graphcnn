@@ -80,13 +80,15 @@ def train_val_split_mesh2aesthetics(config, ratio=0.7):
                     continue
                 objpath = os.path.join(data_dir,row[0])
                 unproc_params = [pp for pp in row[1:5]]
+                stylep = STYLECLASSESDICT[unproc_params[0]]
+                semp = SEMANTICCLASSESDICT[unproc_params[1]]
                 funcp = int(unproc_params[2])-1 if int(unproc_params[3]) <=4 else 4-1
-                aesthp= int(unproc_params[3])-1if int(unproc_params[3])<=5 else 5-1
-                params  = [STYLECLASSESDICT[unproc_params[0]], SEMANTICCLASSESDICT[unproc_params[1]], funcp, aesthp ]
+                aesthp= int(unproc_params[3])-1 if int(unproc_params[3])<=5 else 5-1
+                params  = [stylep, semp, funcp, aesthp ]
                 #params = [float(pp.replace(',','')) for pp in row[1:5]]
                 tmp_objs.append([params, objpath])
-                tester_style.append(STYLECLASSESDICT[unproc_params[0]])
-                tester_sem.append(SEMANTICCLASSESDICT[unproc_params[1]])
+                tester_style.append(stylep)
+                tester_sem.append(semp)
                 tester_func.append(funcp)
                 tester_aesth.append(aesthp)
                 #print( objpath, params, unproc_params)
