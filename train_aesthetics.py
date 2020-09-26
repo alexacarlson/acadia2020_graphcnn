@@ -93,7 +93,7 @@ if __name__ == "__main__":
                             shuffle=True, 
                             collate_fn=collate_fn, 
                             num_workers=_C.OPTIM.WORKERS)
-    
+    #print("BatchSize: "+str(_C.OPTIM.VAL_BATCH_SIZE))
     print("Training Samples: "+str(len(trn_dataloader)))
     print("Validation Samples: "+str(len(val_dataloader)))
 
@@ -150,6 +150,7 @@ if __name__ == "__main__":
             optimizer.zero_grad()
             # forward + backward + optimize
             outputs = model(mesh)
+            print(len(outputs), len(label))
             print(outputs[0].shape, label[0].shape, label[0])
             print(outputs[1].shape, label[1].shape, label[1])
             print(outputs[2].shape, label[2].shape, label[2])
