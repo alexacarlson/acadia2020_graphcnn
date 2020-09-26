@@ -108,8 +108,8 @@ def train_val_split_mesh2aesthetics(config, ratio=0.7):
     #    trn_objs += tmp_train
     #    val_objs += tmp_test
     #    #print(taxonomy['name'][taxonomy.synsetId == int(cls)], len(tmp))
-    random.shuffle(trn_objs)
-    random.shuffle(val_objs)
+    #random.shuffle(trn_objs)
+    #random.shuffle(val_objs)
     return trn_objs, val_objs
 
 def train_val_split_mesh2acoust(config, ratio=0.7):
