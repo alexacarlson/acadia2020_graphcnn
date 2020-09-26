@@ -160,6 +160,7 @@ if __name__ == "__main__":
     funcp = int(args_.functionvalue_param)-1 if int(args_.functionvalue_param) <=4 else 4-1
     aesthp= int(args_.aestheticvalue_param)-1 if int(args_.aestheticvalue_param)<=5 else 5-1
     desired_params  = [torch.Tensor(stylep).long().cuda(), torch.Tensor(semp).long().cuda(), torch.Tensor(funcp).long().cuda(), torch.Tensor(aesthp).long().cuda() ]
+    print([stylep, semp, funcp, aesthp])
     print(desired_params)
     ## ---- SET UP model and optimizer ---- ##
     net_model = GraphConvClf(cfg).cuda()
