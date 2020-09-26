@@ -60,6 +60,8 @@ def train_val_split_mesh2aesthetics(config, ratio=0.7):
 
     ## read in params
     tmp_objs = []
+    tester_style=[]
+    tester_sem=[]
     tester_func=[]
     tester_aesth=[]
     STYLECLASSESDICT={'baroque':0, 'modern':1,'moden':1, 'classic':1, '(Insert Label)':1, 'cubist':2, 'cubims':2, 'cu':2, 'cubism':2, 'Cubism':2}
@@ -87,9 +89,13 @@ def train_val_split_mesh2aesthetics(config, ratio=0.7):
                 params  = [STYLECLASSESDICT[unproc_params[0]], SEMANTICCLASSESDICT[unproc_params[1]], funcp, aesthp ]
                 #params = [float(pp.replace(',','')) for pp in row[1:5]]
                 tmp_objs.append([params, objpath])
+                tester_style.append(STYLECLASSESDICT[unproc_params[0]])
+                tester_sem.append(SEMANTICCLASSESDICT[unproc_params[1]])
                 tester_func.append(funcp)
                 tester_aesth.append(aesthp)
                 #print( objpath, params, unproc_params)
+    print(np.max(tester_style), np.min(tester_style), np.unique(tester_style))
+    print(np.max(tester_sem), np.min(tester_sem), np.unique(tester_sem))
     print(np.max(tester_func), np.min(tester_func), np.unique(tester_func))
     print(np.max(tester_aesth), np.min(tester_aesth), np.unique(tester_aesth))
     #print(len(tmp_objs))
