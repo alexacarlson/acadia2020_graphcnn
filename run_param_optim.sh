@@ -8,16 +8,24 @@
 
 MESH=$1
 TRAINED_GRAPH=$2
-
-OUT_NAME=${10}
-NUM_ITERS=${11}
-CFG_PATH=${12}
+STYLE_PARAM=$3
+SEM_PARAM=$4
+FUNC_PARAM=$5
+AESTH_PARAM=$6
+OUT_NAME=$7
+NUM_ITERS=$8
+CFG_PATH=$9
+#OUT_NAME=${10}
+#NUM_ITERS=${11}
+#CFG_PATH=${12}
 
 python obj_optim_aestheticparams.py \
-  --which_starting_mesh ${MESH} \
+  --starting_mesh ${MESH} \
   --trained_graphnet_weights ${TRAINED_GRAPH} \
-  --mesh_param_optim_weight ${ACOUST_DEFORM_WEIGHT} \
-  --which_acoustic_params ${WHICH_ACOUST_PARAMS} \
+  --style_param ${STYLE_PARAM} \
+  --semantic_param ${SEM_PARAM} \
+  --functionvalue_param ${FUNC_PARAM} \
+  --aestheticvalue_param ${AESTH_PARAM} \
   --output_filename ${OUT_NAME} \
   --num_iteration ${NUM_ITERS} \
   --config_path ${CFG_PATH}
