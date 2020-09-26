@@ -202,10 +202,10 @@ if __name__ == "__main__":
         
         ## Calculate loss on deformed mesh
         outputs = net_model.forward(new_src_mesh)
-        print(outputs[0], desired_params[0].shape)
-        print(outputs[1], desired_params[1].shape)
-        print(outputs[2], desired_params[2].shape)
-        print(outputs[3], desired_params[3].shape)
+        print(outputs[0].shape, desired_params[0].shape)
+        print(outputs[1].shape, desired_params[1].shape)
+        print(outputs[2].shape, desired_params[2].shape)
+        print(outputs[3].shape, desired_params[3].shape)
         loss_style = criterion_style(outputs[0], desired_params[0])
         loss_semantic = criterion_sem(outputs[1], desired_params[1])
         loss_functionality = criterion_func(outputs[2], desired_params[2])
