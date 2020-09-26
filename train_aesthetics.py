@@ -99,14 +99,14 @@ if __name__ == "__main__":
 
     model = GraphConvClf(_C).cuda()
 
-##     optimizer = optim.SGD(
-##         model.parameters(),
-##         lr=_C.OPTIM.LR,
-##         momentum=_C.OPTIM.MOMENTUM,
-##         weight_decay=_C.OPTIM.WEIGHT_DECAY,
-##     )
-#
-   optimizer = optim.Adam(
+    ##     optimizer = optim.SGD(
+    ##         model.parameters(),
+    ##         lr=_C.OPTIM.LR,
+    ##         momentum=_C.OPTIM.MOMENTUM,
+    ##         weight_decay=_C.OPTIM.WEIGHT_DECAY,
+    ##     )
+    #
+    optimizer = optim.Adam(
         model.parameters(),
         lr=_C.OPTIM.LR,
     )
@@ -115,10 +115,9 @@ if __name__ == "__main__":
     #    [{'params':model.parameters()},{'params':loss_weightvars}],
     #    lr=_C.OPTIM.LR,
     #)
-##     lr_scheduler = optim.lr_scheduler.LambdaLR(  # type: ignore
-##         optimizer, lr_lambda=lambda iteration: 1 - iteration / _C.OPTIM.NUM_ITERATIONS
-##     )
-
+    ##     lr_scheduler = optim.lr_scheduler.LambdaLR(  # type: ignore
+    ##         optimizer, lr_lambda=lambda iteration: 1 - iteration / _C.OPTIM.NUM_ITERATIONS
+    ##     )
     criterion = nn.CrossEntropyLoss() #nn.MSELoss() #nn.CrossEntropyLoss()
     args  = {}
     args['EXPERIMENT_NAME'] =  _C.EXPERIMENT_NAME
