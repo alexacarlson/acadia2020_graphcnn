@@ -147,7 +147,10 @@ if __name__ == "__main__":
             optimizer.zero_grad()
             # forward + backward + optimize
             outputs = model(mesh)
-            print(outputs.shape, label.shape)
+            print(outputs[0].shape, label[0].shape)
+            print(outputs[1].shape, label[1].shape)
+            print(outputs[2].shape, label[2].shape)
+            print(outputs[3].shape, label[3].shape)
             #loss = criterion(outputs, label)
             loss_style = criterion(outputs[0], label[0].long())
             loss_semantic = criterion(outputs[1], label[1].long())
