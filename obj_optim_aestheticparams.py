@@ -201,7 +201,7 @@ if __name__ == "__main__":
         #print(deform_verts)
         
         ## Calculate loss on deformed mesh
-        outputs = net_model.forward(new_src_mesh)
+        outputs = torch.squeeze(net_model.forward(new_src_mesh))
         loss_style = criterion_style(outputs[0], desired_params[0].long())
         loss_semantic = criterion_sem(outputs[1], desired_params[1].long())
         loss_functionality = criterion_func(outputs[2], desired_params[2].long())
