@@ -154,10 +154,7 @@ if __name__ == "__main__":
             loss_semantic = criterion(outputs[1], label[1].long())
             loss_functionality = criterion(outputs[2], label[2].long())
             loss_aesthetic = criterion(outputs[3], label[3].long())
-            loss_total = torch.exp(-loss_weightvars[0])*loss_style + \
-                         torch.exp(-loss_weightvars[1])*loss_semantic + \
-                         torch.exp(-loss_weightvars[2])*loss_functionality + \
-                         torch.exp(-loss_weightvars[3])*loss_aesthetic
+            loss_total = torch.exp(-loss_weightvars[0])*loss_style + torch.exp(-loss_weightvars[1])*loss_semantic + torch.exp(-loss_weightvars[2])*loss_functionality + torch.exp(-loss_weightvars[3])*loss_aesthetic
             loss_total.backward()
             optimizer.step()
 #             lr_scheduler.step()
