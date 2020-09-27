@@ -64,8 +64,8 @@ def train_val_split_mesh2aesthetics(config, ratio=0.7):
     tester_sem=[]
     tester_func=[]
     tester_aesth=[]
-    #STYLECLASSESDICT={'baroque':0, 'modern':1, 'moden':1, 'classic':1, '(Insert Label)':1, 'cubist':2, 'cubims':2, 'cu':2, 'cubism':2, 'Cubism':2}
-    STYLECLASSESDICT={'baroque':0, 'modern':0, 'moden':0, 'classic':0, '(Insert Label)':0, 'cubist':1, 'cubims':1, 'cu':1, 'cubism':1, 'Cubism':1}
+    STYLECLASSESDICT={'baroque':0, 'modern':1, 'moden':1, 'classic':1, '(Insert Label)':1, 'cubist':2, 'cubims':2, 'cu':2, 'cubism':2, 'Cubism':2}
+    #STYLECLASSESDICT={'baroque':0, 'modern':0, 'moden':0, 'classic':0, '(Insert Label)':0, 'cubist':1, 'cubims':1, 'cu':1, 'cubism':1, 'Cubism':1}
     SEMANTICCLASSESDICT={'house':0, 'House':0, 'column':1, 'Column':1}
     with open(_params_csv, newline='') as csvfile:
         sreader = csv.reader(csvfile, delimiter=',')
