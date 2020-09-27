@@ -77,6 +77,9 @@ def train_val_split_mesh2aesthetics(config, ratio=0.7):
             if np.any([rr=='' for rr in row]) or np.any([rr=='#' for rr in row]):
                 ## skip empty lines or models with incomplete labels
                 continue
+            if not os.path.exists(os.path.join(data_dir,row[0])):
+                ## skip the objects that dont exist
+                continue
             objpath = os.path.join(data_dir,row[0])
             unproc_params = [pp for pp in row[1:5]]
             stylep = STYLECLASSESDICT[unproc_params[0]]
