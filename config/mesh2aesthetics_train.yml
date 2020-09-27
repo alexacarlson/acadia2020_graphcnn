@@ -9,7 +9,7 @@ SHAPENET_DATA:
     PATH: "/storage/acadia2020_graphcnn_dataset"
 
 OPTIM:
-    BATCH_SIZE: 10
+    BATCH_SIZE: 2
     VAL_BATCH_SIZE: 4
     WORKERS: 8
     EPOCH: 250
