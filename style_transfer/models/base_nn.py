@@ -22,7 +22,7 @@ class GraphConvClf(nn.Module):
             
         self.fc1 = nn.Linear(dims[-1], 1024)
         #self.fc2 = nn.Linear(1024, classes)
-        self.fc_style = nn.Linear(1024, 2)
+        self.fc_style = nn.Linear(1024, 3)
         self.fc_semantics = nn.Linear(1024, 2)
         self.fc_functionality = nn.Linear(1024, 4)
         self.fc_aesthetics = nn.Linear(1024, 5)
