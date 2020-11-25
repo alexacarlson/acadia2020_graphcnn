@@ -1,7 +1,7 @@
 RANDOM_SEED: 0
 
 PHASE: "training"
-EXPERIMENT_NAME: "ai_aesthetics_optim"
+EXPERIMENT_NAME: "ai_aesthetics_optim_centered_bs32_lr2e-4_hd128_256_512_alltasks"
 RESULTS_DIR: "/tf/notebooks/acadia2020_graphcnn_src/acadia2020_graphcnn_training_results"
 OVERFIT: True
 
@@ -12,15 +12,15 @@ OPTIM:
     BATCH_SIZE: 32
     VAL_BATCH_SIZE: 1
     WORKERS: 8
-    EPOCH: 250
+    EPOCH: 1000
     LR: 0.0002
     MOMENTUM: 0.9
     WEIGHT_DECAY: 0.005
     CLIP_GRADIENTS: 12.5
 
 GCC:
-    WHICH_GCN_FN: "GraphConvClf"
+    WHICH_GCN_FN: "GraphConvClf3"
     INPUT_MESH_FEATS: 3
-    HIDDEN_DIMS: [128, 256, 256, 512]
+    HIDDEN_DIMS: [128, 256, 512]
     CLASSES: 4
     CONV_INIT: "normal"

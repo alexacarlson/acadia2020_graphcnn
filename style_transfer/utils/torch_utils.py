@@ -1,7 +1,7 @@
 import torch
 import os
 import shutil
-import pandas as pd, random
+#import pandas as pd, random
 import numpy as np
 import logging
 from tqdm import tqdm
@@ -10,41 +10,49 @@ import pdb
 import csv
 
 
-
-def train_val_split(config, ratio=0.7):
-    '''
-    Function for splitting dataset in train and validation
-    '''
-    print("Splitting Dataset..")
-    data_dir = config.SHAPENET_DATA.PATH 
-    taxonomy = pd.read_json(data_dir+'/taxonomy.json')
-    classes = [i for i in os.listdir(data_dir) if i in '0'+taxonomy.synsetId.astype(str).values]
-    random.shuffle(classes)
-    assert classes != [], "No  objects(synsetId) found."
-    if config.OVERFIT:
-        classes.remove('04401088')
-        classes = classes[:10]
-    classes = dict(zip(classes,np.arange(len(classes))))
+def load_network(net, load_path):
+    """load model from disk"""
+    print('loading the model from %s' % load_path)
+    # PyTorch newer than 0.4 (e.g., built from GitHub source), you can remove str() on self.device
+    state_dict = torch.load(load_path, map_location=str(self.device))
+    if hasattr(state_dict, '_metadata'):
+        del state_dict._metadata
+    net.load_state_dict(state_dict)
     
-    ## Save the class to synsetID mapping
-    path = os.path.join(config.CKP.experiment_path, 'class_map.pkl') 
-    with open(path, 'wb') as handle:
-        pickle.dump(classes, handle, protocol=pickle.HIGHEST_PROTOCOL)
-
-    trn_objs = []
-    val_objs = []
-
-    for cls in tqdm(classes):
-        tmp = [(classes[cls], os.path.join(data_dir, cls, obj_file,'model.obj')) for obj_file in os.listdir(os.path.join(data_dir,cls))]
-        random.shuffle(tmp)
-        tmp_train = tmp[:int(len(tmp)*0.7)]
-        tmp_test = tmp[int(len(tmp)*0.7):]
-        trn_objs += tmp_train
-        val_objs += tmp_test
-        print(taxonomy['name'][taxonomy.synsetId == int(cls)], len(tmp))
-    random.shuffle(trn_objs)
-    random.shuffle(val_objs)
-    return trn_objs, val_objs
+#def train_val_split(config, ratio=0.7):
+#    '''
+#    Function for splitting dataset in train and validation
+#    '''
+#    print("Splitting Dataset..")
+#    data_dir = config.SHAPENET_DATA.PATH 
+#    taxonomy = pd.read_json(data_dir+'/taxonomy.json')
+#    classes = [i for i in os.listdir(data_dir) if i in '0'+taxonomy.synsetId.astype(str).values]
+#    random.shuffle(classes)
+#    assert classes != [], "No  objects(synsetId) found."
+#    if config.OVERFIT:
+#        classes.remove('04401088')
+#        classes = classes[:10]
+#    classes = dict(zip(classes,np.arange(len(classes))))
+#    
+#    ## Save the class to synsetID mapping
+#    path = os.path.join(config.CKP.experiment_path, 'class_map.pkl') 
+#    with open(path, 'wb') as handle:
+#        pickle.dump(classes, handle, protocol=pickle.HIGHEST_PROTOCOL)#
+#
+#    trn_objs = []
+#    val_objs = []
+#
+#    for cls in tqdm(classes):
+#        tmp = [(classes[cls], os.path.join(data_dir, cls, obj_file,'model.obj')) for obj_file in #os.listdir(os.path.join(data_dir,cls))]
+#        random.shuffle(tmp)
+#        tmp_train = tmp[:int(len(tmp)*0.7)]
+#        tmp_test = tmp[int(len(tmp)*0.7):]
+#        trn_objs += tmp_train
+#        val_objs += tmp_test
+#        print(taxonomy['name'][taxonomy.synsetId == int(cls)], len(tmp))
+#    random.shuffle(trn_objs)
+#    random.shuffle(val_objs)
+#    return trn_objs, val_objs
 
 def train_val_split_mesh2aesthetics(config, ratio=0.7):
     '''
@@ -56,8 +64,10 @@ def train_val_split_mesh2aesthetics(config, ratio=0.7):
     print("Splitting Dataset..")
     #data_dir = os.path.join(config.SHAPENET_DATA.PATH, 'Separated')
     data_dir = os.path.join(config.SHAPENET_DATA.PATH)
-    _params_csv = os.path.join(config.SHAPENET_DATA.PATH, 'NamingBookV3.csv')
-
+    #_params_csv = os.path.join(config.SHAPENET_DATA.PATH, 'NamingBookV3_lessthan100kverts.csv') #'NamingBookV3.csv')
+    _params_csv = os.path.join(os.getcwd(), 'NamingBookV3_lessthan100kverts.csv')
+    print(_params_csv)
+    #pdb.set_trace()
     ## read in params
     tmp_objs = []
     tester_style=[]
@@ -65,8 +75,14 @@ def train_val_split_mesh2aesthetics(config, ratio=0.7):
     tester_func=[]
     tester_aesth=[]
     STYLECLASSESDICT={'baroque':0, 'modern':1, 'moden':1, 'classic':1, '(Insert Label)':1, 'cubist':2, 'cubims':2, 'cu':2, 'cubism':2, 'Cubism':2}
-    #STYLECLASSESDICT={'baroque':0, 'modern':0, 'moden':0, 'classic':0, '(Insert Label)':0, 'cubist':1, 'cubims':1, 'cu':1, 'cubism':1, 'Cubism':1}
     SEMANTICCLASSESDICT={'house':0, 'House':0, 'column':1, 'Column':1}
+    #if config.SHAPENET_DATA.SEMCLASS=='all':
+    #    SEMANTICCLASSESDICT={'house':0, 'House':0, 'column':1, 'Column':1}
+    #elif config.SHAPENET_DATA.SEMCLASS=='column':
+    #    SEMANTICCLASSESDICT={'column':1, 'Column':1}
+    #elif config.SHAPENET_DATA.SEMCLASS=='house':
+    #    SEMANTICCLASSESDICT={'house':0, 'House':0}
+            
     with open(_params_csv, newline='') as csvfile:
         sreader = csv.reader(csvfile, delimiter=',')
         ## skip first two lines of csv file
@@ -82,35 +98,51 @@ def train_val_split_mesh2aesthetics(config, ratio=0.7):
                 continue
             objpath = os.path.join(data_dir,row[0])
             unproc_params = [pp for pp in row[1:5]]
-            stylep = STYLECLASSESDICT[unproc_params[0]]
-            semp = SEMANTICCLASSESDICT[unproc_params[1]]
-            funcp = int(unproc_params[2])-1 if int(unproc_params[2]) <=4 else 4-1
-            aesthp= int(unproc_params[3])-1 if int(unproc_params[3])<=5 else 5-1
-            params  = np.array([stylep, semp, funcp, aesthp ])
-            tmp_objs.append((params, objpath))
-            tester_style.append(stylep)
-            tester_sem.append(semp)
-            tester_func.append(funcp)
-            tester_aesth.append(aesthp)
-            #print( objpath, params, unproc_params)
-    print(np.max(tester_style), np.min(tester_style), np.unique(tester_style))
-    print(np.max(tester_sem), np.min(tester_sem), np.unique(tester_sem))
-    print(np.max(tester_func), np.min(tester_func), np.unique(tester_func))
-    print(np.max(tester_aesth), np.min(tester_aesth), np.unique(tester_aesth))
-    #print(len(tmp_objs))
-    #pdb.set_trace()
-    trn_objs = tmp_objs[:int(len(tmp_objs)*0.9)]
-    val_objs = tmp_objs[int(len(tmp_objs)*0.9):]
-    #for cls in tqdm(classes):
-    #    tmp = [(classes[cls], os.path.join(data_dir, cls, obj_file,'model.obj')) for obj_file in os.listdir(os.path.join(data_dir,cls))]
-    #    random.shuffle(tmp)
-    #    tmp_train = tmp[:int(len(tmp)*0.7)]
-    #    tmp_test = tmp[int(len(tmp)*0.7):]
-    #    trn_objs += tmp_train
-    #    val_objs += tmp_test
-    #    #print(taxonomy['name'][taxonomy.synsetId == int(cls)], len(tmp))
-    #random.shuffle(trn_objs)
-    #random.shuffle(val_objs)
+            if config.SHAPENET_DATA.SEMCLASS!='all':
+                #print(SEMANTICCLASSESDICT)
+                #print(unproc_params[1])
+                #print(unproc_params[1], config.SHAPENET_DATA.SEMCLASS)
+                if unproc_params[1].lower()!=config.SHAPENET_DATA.SEMCLASS:
+                    continue
+                #print('FUCK')
+                stylep = STYLECLASSESDICT[unproc_params[0]]
+                funcp = int(unproc_params[2])-1 if int(unproc_params[2]) <=4 else 4-1
+                aesthp= int(unproc_params[3])-1 if int(unproc_params[3])<=5 else 5-1
+                params  = np.array([stylep, funcp, aesthp ])
+                tmp_objs.append((params, objpath))
+                tester_style.append(stylep)
+                #tester_sem.append(semp)
+                tester_func.append(funcp)
+                tester_aesth.append(aesthp)
+            else: 
+                stylep = STYLECLASSESDICT[unproc_params[0]]
+                semp = SEMANTICCLASSESDICT[unproc_params[1]]
+                funcp = int(unproc_params[2])-1 if int(unproc_params[2]) <=4 else 4-1
+                aesthp= int(unproc_params[3])-1 if int(unproc_params[3])<=5 else 5-1
+                if config.SHAPENET_DATA.WHICH_TASK=='all':
+                    params  = np.array([stylep, semp, funcp, aesthp ])
+                    tmp_objs.append((params, objpath))
+                elif config.SHAPENET_DATA.WHICH_TASK=='aesthetic':
+                    params  = np.array([aesthp ])
+                    tmp_objs.append((params, objpath))
+                elif config.SHAPENET_DATA.WHICH_TASK=='semantic':
+                    params  = np.array([semp])
+                    tmp_objs.append((params, objpath))
+                elif config.SHAPENET_DATA.WHICH_TASK=='functionality':
+                    params  = np.array([funcp])
+                    tmp_objs.append((params, objpath))
+                elif config.SHAPENET_DATA.WHICH_TASK=='style':    
+                    params  = np.array([stylep])
+                    tmp_objs.append((params, objpath))
+                #tester_style.append(stylep)
+                #tester_sem.append(semp)
+                #tester_func.append(funcp)
+                #tester_aesth.append(aesthp)
+    np.random.shuffle(tmp_objs)
+    num_trn_objs = len(tmp_objs) - 100
+    trn_objs = tmp_objs[:num_trn_objs]
+    val_objs = tmp_objs[num_trn_objs:]
+    #
     return trn_objs, val_objs
 
 def train_val_split_mesh2acoust(config, ratio=0.7):

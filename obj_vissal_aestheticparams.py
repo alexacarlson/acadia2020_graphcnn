@@ -7,8 +7,7 @@ from tqdm import tqdm
 import pdb
 import torch
 import pickle
-#import pandas as pd
-from PIL import Image
+import pandas as pd
 import numpy as np
 import os
 import yaml
@@ -28,6 +27,27 @@ from pytorch3d.renderer import (
     RasterizationSettings, MeshRenderer, MeshRasterizer, BlendParams,
     SoftSilhouetteShader, HardPhongShader, PointLights
 )
+#import scipy.misc
+from distutils import util
+import cv2
+from style_transfer.config import Config
+from style_transfer.models.base_nn import GraphConvClf
+from style_transfer.data.datasets import ShapenetDataset
+from style_transfer.config import Config
+from style_transfer.utils.torch_utils import train_val_split, save_checkpoint, accuracy
+from mpl_toolkits.mplot3d import Axes3D
+import matplotlib.pyplot as plt
+import matplotlib as mpl
+import matplotlib.animation #import FuncAnimation
+from matplotlib.animation import FuncAnimation
+from ico_plane import ico_plane
+mpl.rcParams['savefig.dpi'] = 80
+mpl.rcParams['figure.dpi'] = 80
+import warnings
+warnings.filterwarnings("ignore")
+
+from PIL import Image·
+#from pytorch3d.structures import Textures·
 from pytorch3d.renderer import (
     look_at_view_transform,
     FoVPerspectiveCameras,
@@ -41,34 +61,15 @@ from pytorch3d.renderer import (
     TexturesUV,
     TexturesVertex
 )
-#import scipy.misc
-from distutils import util
-import cv2
-from style_transfer.config import Config
-from style_transfer.models.base_nn import GraphConvClf,GraphConvClf2,GraphConvClf3,GraphConvClf_singlesemclass,GraphConvClf_singletask
-#from style_transfer.data.datasets import ShapenetDataset
-from style_transfer.config import Config
-#from style_transfer.utils.torch_utils import train_val_split, save_checkpoint, accuracy
+from obj2gif import render_mesh, images2gif, display_and_save_gif_ncluster_grid
+
 from mpl_toolkits.mplot3d import Axes3D
+#import matplotlib
+#matplotlib.use('tkagg')
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 import matplotlib.animation #import FuncAnimation
 from matplotlib.animation import FuncAnimation
-from ico_plane import ico_plane
-mpl.rcParams['savefig.dpi'] = 80
-mpl.rcParams['figure.dpi'] = 80
-import warnings
-warnings.filterwarnings("ignore")
-from obj2gif import render_mesh,images2gif
-
-def gif_renderobj(mesh,output_dir, ofname):
-    verts_rgb_ = 0.65*torch.ones((mesh.verts_packed().shape[0],3)).unsqueeze(0).to(device)
-    tmesh = Meshes(verts=[mesh.verts_packed().to(device)], faces=[mesh.faces_packed().to(device)], 
-                            textures=TexturesVertex(verts_features=verts_rgb_) )
-    image_list = render_mesh(tmesh, 0.0, 20.0, 30, device, 256)
-    images_ = [Image.fromarray(np.uint8(img.detach().cpu().squeeze().numpy())) for img in image_list]
-    images2gif(images_, os.path.join(output_dir, ofname+'_obj.gif'))
-            
 def plot_pointcloud(mesh, title=""):
     # Sample points uniformly from the surface of the mesh.
     points = sample_points_from_meshes(mesh, 5000)
@@ -125,7 +126,7 @@ if __name__ == "__main__":
     parser.add_argument('-ab1', '--adam_beta1', type=float, default=0.9)
     parser.add_argument('-bs', '--batch_size', type=int, default=4)
     #parser.add_argument('-sif', '--silhouette_img_ref', type=str, default=None)
-    parser.add_argument('-gnet', '--trained_graphnet_weights', type=str, default='/storage/mesh2acoustic_training_results/exp_03_10_11_57_39_c')
+    parser.add_argument('-gnet', '--trained_graphnet_weights', type=str, default='/storage/training_results/exp_03_10_11_57_39_c')
     parser.add_argument('-smesh', '--starting_mesh', type=str, default='sphere')
     parser.add_argument('-stp', '--style_param', type=str, default='baroque')
     parser.add_argument('-semp', '--semantic_param', type=str, default='house')
@@ -149,13 +150,17 @@ if __name__ == "__main__":
     #
     ## make the output directory if necessary 
     meshid = os.path.splitext(os.path.split(args_.starting_mesh)[1])[0]
-    #output_dir = '/storage/results_%s_optim_style%s_semantic%s_func%s_aesth%s'%(str(meshid), str(args_.style_param), str(args_.semantic_param), str(args_.functionvalue_param), str(args_.aestheticvalue_param))
-    output_dir = os.path.join(os.getcwd(),'results_%s_optim_style%s_semantic%s_func%s_aesth%s'%(str(meshid), str(args_.style_param), str(args_.semantic_param), str(args_.functionvalue_param), str(args_.aestheticvalue_param)))
+    output_dir = '/storage/results_%s_optim_style%s_semantic%s_func%s_aesth%s'%(str(meshid), str(args_.style_param), str(args_.semantic_param), str(args_.functionvalue_param), str(args_.aestheticvalue_param))
     print('Saving optim results to %s'%(output_dir))
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
 
-    ## ---- SET UP seed mesh for dreaming ---- ##
+    def get_colors(self, inp, colormap, vmin=None, vmax=None):
+        norm = plt.Normalize(vmin, vmax)
+        #pdb.set_trace()
+        return colormap(norm(inp))
+    
+    ## ---- SET UP seed mesh for class visual saliency ---- ##
     if args_.starting_mesh=='sphere':
         ## FOR loading in sphere; initialize the source shape to be a sphere of radius 1
         src_mesh = ico_sphere(4, device)
@@ -165,12 +170,6 @@ if __name__ == "__main__":
     elif os.path.isfile(args_.starting_mesh):
         ## FOR loading in input mesh from file
         verts, faces, aux=load_obj(args_.starting_mesh)
-        ## center to sphere at origin 0
-        center = verts.mean(0)
-        verts = verts - center
-        scale = max(verts.abs().max(0)[0])
-        verts = verts / scale
-        ##
         faces_idx = faces.verts_idx.to(device)
         verts = verts.to(device)
         src_mesh = Meshes(verts=[verts], faces=[faces_idx])
@@ -181,76 +180,40 @@ if __name__ == "__main__":
 
     ## ---- SET UP/load in trained graph convolutional NN classification model ---- ##
     graphconv_model_path = args_.trained_graphnet_weights 
+    
     cfg = Config(args_.config_path)
+    
     #desired_params = torch.tensor([float(ap) for ap in args_.which_params.split(',')], dtype=torch.float32, device=device)
     STYLECLASSESDICT={'baroque':0, 'modern':0, 'moden':0, 'classic':0, '(Insert Label)':0, 'cubist':1, 'cubims':1, 'cu':1, 'cubism':1, 'Cubism':1}
+    
     SEMANTICCLASSESDICT={'house':0, 'House':0, 'column':1, 'Column':1}
+    
     stylep = STYLECLASSESDICT[args_.style_param]
     semp = SEMANTICCLASSESDICT[args_.semantic_param]
     funcp = int(args_.functionvalue_param)-1 if int(args_.functionvalue_param) <=4 else 4-1
     aesthp= int(args_.aestheticvalue_param)-1 if int(args_.aestheticvalue_param)<=5 else 5-1
+    
     #desired_params  = torch.Tensor([stylep, semp, funcp, aesthp]).long().cuda()
+    
     desired_params  =[torch.Tensor([stylep]).cuda().long(), torch.Tensor([semp]).cuda().long(), torch.Tensor([funcp]).cuda().long(), torch.Tensor([aesthp]).cuda().long()]
     #print(desired_params)
     
     ## ---- SET UP model and optimizer ---- ##
-    criterion_style = nn.CrossEntropyLoss() #nn.MSELoss() #nn.CrossEntropyLoss()
-    criterion_sem = nn.CrossEntropyLoss() #nn.MSELoss() #nn.CrossEntropyLoss()
-    criterion_func = nn.CrossEntropyLoss() #nn.MSELoss() #nn.CrossEntropyLoss()
-    criterion_aesth = nn.CrossEntropyLoss() #nn.MSELoss() #nn.CrossEntropyLoss()
-    #net_model = GraphConvClf(cfg).cuda()
-    if cfg.GCC.WHICH_GCN_FN=="GraphConvClf":
-        loss_weightvars = [1, 0.01, 10, 10]
-        loss_criterions = [criterion_style, criterion_sem, criterion_func, criterion_aesth]
-        net_model = GraphConvClf(cfg).cuda()
-        
-    elif cfg.GCC.WHICH_GCN_FN=="GraphConvClf2":
-        loss_weightvars = [1, 0.01, 10, 10]
-        loss_criterions = [criterion_style, criterion_sem, criterion_func, criterion_aesth]
-        net_model = GraphConvClf2(cfg).cuda()
-        
-    elif cfg.GCC.WHICH_GCN_FN=="GraphConvClf3":
-        loss_weightvars = [1, 0.01, 10, 10]
-        loss_criterions = [criterion_style, criterion_sem, criterion_func, criterion_aesth]        
-        net_model = GraphConvClf3(cfg).cuda()
-        
-    elif cfg.GCC.WHICH_GCN_FN=="GraphConvClf_singlesemclass":
-        loss_weightvars = [1, 10, 10]
-        loss_criterions = [criterion_style, criterion_func, criterion_aesth]        
-        net_model = GraphConvClf_singlesemclass(cfg).cuda()
-        
-    elif cfg.GCC.WHICH_GCN_FN=="GraphConvClf_singletask" and not task_flag:
-        if cfg.SHAPENET_DATA.WHICH_TASK == 'semantic':
-            numCLASSES=2
-            loss_weightvars = [100]
-            loss_criterions = [criterion_sem]
-        elif cfg.SHAPENET_DATA.WHICH_TASK == 'style':
-            numCLASSES=3
-            loss_weightvars = [100]
-            loss_criterions = [criterion_style]
-        elif cfg.SHAPENET_DATA.WHICH_TASK == 'functionality':
-            loss_weightvars = [100]
-            loss_criterions = [criterion_func]           
-            numCLASSES=4
-        elif cfg.SHAPENET_DATA.WHICH_TASK == 'aesthetic':
-            loss_weightvars = [100]
-            loss_criterions = [criterion_aesth]            
-            numCLASSES=5
-        net_model = GraphConvClf_singletask(cfg, numCLASSES).cuda()
-        
+    net_model = GraphConvClf(cfg).cuda()
     net_model.load_state_dict(torch.load(graphconv_model_path, map_location=torch.device('cpu'))['state_dict'])
     ## freeze the parameters for the classification model
     for pp in net_model.parameters():
         pp.requires_grad=False
-    net_model.eval()
-    
+            
     ## ---- SET UP optimization variables of mesh ---- ##
     ITERS = args_.num_iteration  
     MESH_LR =0.05 #1.0
-    ## set up optimization; we will learn to deform the source mesh by offsetting its vertices. The shape of the deform parameters is equal to the total number of vertices in src_mesh
+    #
+    ## set up optimization; 
+    ## we will learn to deform the source mesh by offsetting its vertices. 
+    ## The shape of the deform parameters is equal to the total number of vertices in src_mesh
     deform_verts = torch.full(src_mesh.verts_packed().shape, 0.0, device=device, requires_grad=True)
     optimizer = optim.Adam([deform_verts], lr=MESH_LR,)
-    #optimizer = torch.optim.SGD([deform_verts], lr=1.0, momentum=0.9)
 
     # Plot period for the losses
     plot_period = 50
@@ -259,7 +222,11 @@ if __name__ == "__main__":
     #   DEFORMATION LOOP
     # --------------------------------------------------------------------------------------------
     print('\n ***************** Deforming *****************') 
-    #for iter_ in tqdm(range(ITERS)): 
+    criterion_style = nn.CrossEntropyLoss() #nn.MSELoss() #nn.CrossEntropyLoss()
+    criterion_sem = nn.CrossEntropyLoss() #nn.MSELoss() #nn.CrossEntropyLoss()
+    criterion_func = nn.CrossEntropyLoss() #nn.MSELoss() #nn.CrossEntropyLoss()
+    criterion_aesth = nn.CrossEntropyLoss() #nn.MSELoss() #nn.CrossEntropyLoss()
+    
     for iter_ in range(ITERS):    
         #
         loss=0
@@ -272,6 +239,15 @@ if __name__ == "__main__":
         
         ## Calculate loss on deformed mesh
         outputs = net_model.forward(new_src_mesh)
+        
+        nverts_intensity = torch.norm(self.src_mesh['features'].grad, dim=1).cpu().numpy()
+        nverts_intensity = (nverts_intensity - nverts_intensity.min())/(nverts_intensity.max() - nverts_intensity.min())
+        verts_rgb_ = 255.*torch.Tensor(get_colors(nverts_intensity, plt.cm.coolwarm)[:,:3]).unsqueeze(0).to(device)
+        t_mesh = Meshes(verts=[rmesh.to(device)],faces=[rfaces.to(device)],textures=TexturesVertex(verts_features=verts_rgb_) )
+        all_images = render_mesh(t_mesh, elevation = 45, dist_=5, batch_size=50, device=device, imageSize=256)
+        all_images_ = [Image.fromarray(np.uint8(img.detach().cpu().squeeze().numpy())) for img in all_images]
+        images2gif(all_images_, filepath) 
+        
         #print(outputs[0].shape, desired_params[0].shape, desired_params[0])
         #print(outputs[1].shape, desired_params[1].shape, desired_params[1])
         #print(outputs[2].shape, desired_params[2].shape, desired_params[2])
@@ -299,9 +275,8 @@ if __name__ == "__main__":
                 #
             ## plot point cloud render of deformed mesh
             ofname=os.path.join(output_dir, os.path.splitext(args_.output_filename)[0]+"iter_%d" % iter_)
-            gif_pointcloud(new_src_mesh, os.path.join(output_dir, ofname+'_ptcld.gif'), title=ofname)
-            ## full surface render of deformed mesh
-            #gif_renderobj(mesh, output_dir, ofname)
+            gif_pointcloud(new_src_mesh, os.path.join(output_dir, ofname+'.gif'), title=ofname)
+            #plot_pointcloud(new_src_mesh, title=args_.filename_output+"iter_%d" % iter_)
             #
             print('Iteration: '+str(iter_) + ' Loss: '+str(loss.cpu().detach().numpy()))
             #
@@ -311,14 +286,8 @@ if __name__ == "__main__":
         ##
     ## final obj shape
     ofname=os.path.join(output_dir, os.path.splitext(args_.output_filename)[0]+"_final")
-    ## Save point cloud gif
-    gif_pointcloud(new_src_mesh, os.path.join(output_dir, ofname+"_ptcld.gif"), title=ofname)
-    ## full surface render of deformed mesh
-    #gif_renderobj(mesh,output_dir, ofname)
-    #
+    gif_pointcloud(new_src_mesh, os.path.join(output_dir, ofname+".gif"), title=ofname)
     ## Fetch the verts and faces of the final predicted mesh
     final_verts, final_faces = new_src_mesh.get_mesh_verts_faces(0)    
     ## save output mesh
     save_obj(os.path.join(output_dir, args_.output_filename), final_verts, final_faces)
-    ## save render of mesh
-    

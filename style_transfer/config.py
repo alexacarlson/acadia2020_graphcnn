@@ -49,9 +49,13 @@ class Config(object):
         self._C.EXPERIMENT_NAME = "default"
         self._C.RESULTS_DIR = "results"
         self._C.OVERFIT= False
+        self._C.NETWORK_WEIGHTS_PATH=" "
+        
 
         self._C.SHAPENET_DATA = CN()
         self._C.SHAPENET_DATA.PATH = '/scratch/jiadeng_root/jiadeng/shared_data/datasets/ShapeNetCore.v1/'
+        self._C.SHAPENET_DATA.SEMCLASS='all'
+        self._C.SHAPENET_DATA.WHICH_TASK='all'
         # self._C.SHAPENET_DATA.TRANSFORM = None
 
         self._C.OPTIM = CN()
@@ -65,6 +69,7 @@ class Config(object):
         self._C.OPTIM.CLIP_GRADIENTS = 12.5
 
         self._C.GCC = CN()
+        self._C.GCC.WHICH_GCN_FN="GraphConvClf"
         self._C.GCC.INPUT_MESH_FEATS = 3
         self._C.GCC.HIDDEN_DIMS = [32, 64, 128]
         self._C.GCC.CLASSES = 57
@@ -74,7 +79,7 @@ class Config(object):
         self._C.merge_from_list(config_override)
         
         self._C.CKP = CN()
-        self._C.CKP.full_experiment_name = ("exp_%s_%s" % ( time.strftime("%m_%d_%H_%M_%S"), self._C.EXPERIMENT_NAME) )
+        self._C.CKP.full_experiment_name = ("exp_%s_%s_nettype-%s_class-%s" % ( time.strftime("%m_%d_%H_%M_%S"), self._C.EXPERIMENT_NAME, self._C.GCC.WHICH_GCN_FN, self._C.SHAPENET_DATA.SEMCLASS ) )
         self._C.CKP.experiment_path = os.path.join(self._C.RESULTS_DIR, self._C.CKP.full_experiment_name)
         self._C.CKP.best_loss = sys.float_info.max
         self._C.CKP.best_acc = 0.
