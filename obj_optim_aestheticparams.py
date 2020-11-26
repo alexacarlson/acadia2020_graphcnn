@@ -183,7 +183,7 @@ if __name__ == "__main__":
     graphconv_model_path = args_.trained_graphnet_weights 
     cfg = Config(args_.config_path)
     #desired_params = torch.tensor([float(ap) for ap in args_.which_params.split(',')], dtype=torch.float32, device=device)
-    STYLECLASSESDICT={'baroque':0, 'modern':0, 'moden':0, 'classic':0, '(Insert Label)':0, 'cubist':1, 'cubims':1, 'cu':1, 'cubism':1, 'Cubism':1}
+    STYLECLASSESDICT={'baroque':0, 'modern':1, 'moden':1, 'classic':1, '(Insert Label)':1, 'cubist':2, 'cubims':2, 'cu':2, 'cubism':2, 'Cubism':2}
     SEMANTICCLASSESDICT={'house':0, 'House':0, 'column':1, 'Column':1}
     stylep = STYLECLASSESDICT[args_.style_param]
     semp = SEMANTICCLASSESDICT[args_.semantic_param]
